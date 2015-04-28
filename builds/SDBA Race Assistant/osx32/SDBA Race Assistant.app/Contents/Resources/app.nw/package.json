@@ -1,0 +1,9 @@
+{
+  "name": "SDBA Race Assistant",
+  "main": "index.html",
+  "version": "0.0.1",
+  "window": {
+    "width": 1000,
+    "height": 700
+  }
+}

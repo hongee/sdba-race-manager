@@ -1,0 +1,185 @@
+$icon-font-path: "../bower_components/bootstrap-sass-official/assets/fonts/bootstrap/";
+$input-border-focus: #e5e5e5;
+// bower:scss
+@import "bootstrap-sass-official/assets/stylesheets/_bootstrap.scss";
+// endbower
+.browsehappy {
+    margin: 0.2em 0;
+    background: #ccc;
+    color: #000;
+    padding: 0.2em 0;
+}
+
+// Get rid of weird webkit glows
+* {
+    -webkit-tap-highlight-color: rgba(255, 255, 255, 0) !important;
+    -webkit-tap-highlight-color: transparent !important;
+}
+
+.btn:focus,.btn:active:focus,.btn.active:focus,
+.btn.focus,.btn:active.focus,.btn.active.focus {
+    outline: none !important;
+}
+
+/* Page transition animations */
+/*
+.ng-enter,
+.ng-leave {
+  transition: all 0.2s ease;
+}
+
+.ng-enter {
+  opacity: 0;
+}
+
+.ng-enter-active {
+  opacity: 1;
+}
+
+.ng-leave {
+  opacity: 1;
+}
+
+.ng-leave-active {
+  opacity: 0;
+}
+*/
+
+/* Variables */
+$background-color: rgba(255, 255, 255, 0.6);
+
+/* Structure */
+
+html {
+    height: 100%;
+}
+
+body {
+    min-height: 100%;
+    height: 100%;
+    padding: 0;
+    background: url('../images/bg.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+
+.jumbotron {
+    background-color: $background-color;
+    margin-bottom: 0 !important;
+}
+
+.content-wrap {
+  background-color: $background-color;
+}
+
+.wrapper {
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+.close-button {
+    margin-right: 0;
+}
+
+.navbar-default {
+    background-color: rgba(248, 248, 248, 0.5);
+    .nav-inner {
+        text-align: center;
+        .nav-center {
+            display: inline-block;
+            float: none;
+        }
+    }
+}
+
+.event {
+  padding: 30px !important;
+  h3 {
+    margin-top: 0px;
+  }
+  tbody {
+    text-align: left;
+  }
+}
+
+.event-settings {
+  max-height: 500px;
+  overflow: scroll;
+}
+/* Everything but the jumbotron gets side spacing for mobile first views */
+
+.header,
+.marketing,
+.footer {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+/* Custom page header */
+
+.header {
+    border-bottom: 1px solid #e5e5e5;
+    margin-bottom: 10px;
+    /* Make the masthead heading the same height as the navigation */
+
+    h3 {
+        margin-top: 0;
+        margin-bottom: 0;
+        line-height: 40px;
+        padding-bottom: 19px;
+    }
+}
+/* Custom page footer */
+
+.footer {
+    padding-top: 19px;
+    color: #777;
+    border-top: 1px solid #e5e5e5;
+}
+
+.container-narrow > hr {
+    margin: 30px 0;
+}
+/* Main marketing message and sign up button */
+
+.jumbotron {
+    text-align: center;
+    border-bottom: 1px solid #e5e5e5;
+    .btn {
+        font-size: 21px;
+        padding: 14px 24px;
+    }
+}
+/* Supporting marketing content */
+
+.marketing {
+    margin: 40px 0;
+    p + h4 {
+        margin-top: 28px;
+    }
+}
+/* Responsive: Portrait tablets and up */
+
+@media screen and (min-width: 768px) {
+    .container {
+        max-width: 730px;
+    }
+    /* Remove the padding we set earlier */
+
+    .header,
+    .marketing,
+    .footer {
+        padding-left: 0;
+        padding-right: 0;
+    }
+    /* Space out the masthead */
+
+    .header {
+        margin-bottom: 30px;
+    }
+    /* Remove the bottom border on the jumbotron for visual effect */
+
+    .jumbotron {
+        border-bottom: 0;
+    }
+}

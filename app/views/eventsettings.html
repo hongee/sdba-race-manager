@@ -1,0 +1,61 @@
+<div class="container content-wrap clearfix event-settings">
+    <h2>Settings for {{eventSettings.name}}</h2>
+    <div class="alert alert-warning">
+        <p>The below settings should only be set BEFORE the event has commenced. Changing race settings while the event is underway may affect the integrity of race data.</p>
+    </div>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">Generate Heats Lineup</h3>
+        </div>
+        <div class="panel-body">
+            <div class="alert alert-danger" ng-show="prior"><b>We have found previously generated races!</b> Generating again WILL override the race line up and data for the first rounds of the event!</div>
+            <button type="button" class="btn btn-default" ng-click="generateHeats()">Generate Heats</button>
+            <a type="button" class="btn btn-default" href="#/event">Go To Event</a>
+            <p ng-show="heatsGenerated"><i>Heats Generated!</i></p>
+        </div>
+    </div>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <a class="pull-right" ng-click="add=true"><span class="glyphicon glyphicon-floppy-disk"></span></a>
+            <h3 class="panel-title">Race Structure</h3>
+        </div>
+        <div class="panel-body">
+            <p><i>Defaults are based on the tables provided, and ought to work for most scenarios. Do NOT edit unless you're certain of the changes you're making.</i></p>
+        </div>
+        <table class="table table-bordered table-condensed">
+            <thead>
+                <tr>
+                    <th>Cat. ID</th>
+                    <th>Teams</th>
+                    <th>Rounds</th>
+                    <th>Heats</th>
+                    <th>FL(H)</th>
+                    <th>Repechage</th>
+                    <th>Semifinals</th>
+                    <th>Minorfinals</th>
+                    <th>Grandfinals</th>
+                    <th>Options</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="category in eventSettings.categories">
+                    <td><code>{{category.id}}</code></td>
+                    <td>{{category.totalTeams}}</td>
+                    <td>{{category.progression.RND}}</td>
+                    <td>{{category.progression.HEAT}}</td>
+                    <td>{{category.progression.FLH}}</td>
+                    <td>{{category.progression.REPE}}</td>
+                    <td>{{category.progression.SEMI}}</td>
+                    <td>{{category.progression.MNFN}}</td>
+                    <td>{{category.progression.GNFN}}</td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">Administrative</h3>
+        </div>
+    </div>
+</div>

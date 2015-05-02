@@ -436,7 +436,6 @@ module.exports = function (grunt) {
       'concurrent:server',
       'autoprefixer:server',
       'connect:livereload',
-      'nodewebkit',
       'watch'
     ]);
   });

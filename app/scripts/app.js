@@ -1,3 +1,4 @@
+/* global angular */
 'use strict';
 
 /**
@@ -36,6 +37,10 @@ angular
       .when('/event/settings', {
         templateUrl: 'views/eventsettings.html',
         controller: 'EventSettingsCtrl'
+      })
+      .when('/event/:eventID', {
+        templateUrl: 'views/eventview.html',
+        controller: 'EventViewCtrl'
       })
       .when('/event', {
         templateUrl: 'views/event.html',
@@ -113,9 +118,23 @@ angular
 
   })
   .controller('NavBarCtrl', function($scope, $window, $route) {
+
+    $scope.hide = false;//$route.current.$$route.controller;
+
+    $scope.$on("$routeChangeSuccess", function(event,next,current){
+      if(next.$$route.controller === 'EventViewCtrl') {
+        $scope.hide = true;
+      } else {
+        $scope.hide = false;
+      }
+    });
+
     $scope.back = function() {
       if ($route.current.$$route.originalPath !== "/")
         $window.history.back();
     }
+
+    $scope.close = function() {
+    };
 
   });

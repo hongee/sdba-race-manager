@@ -21,10 +21,11 @@
       <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->
     <!-- Add your site or application content here -->
+
     <div class="wrapper">
-        <ng-include src="'views/_partials.navbar.html'" class="navbar navbar-default navbar-fixed-top" ng-controller="NavBarCtrl"></ng-include>
-        <div class="container dbox-wrapper">
-            <div class="displaybox" ng-view=""></div>
+        <ng-include src="'views/_partials.navbar.html'" ng-controller="NavBarCtrl"></ng-include>
+        <div class="container">
+            <div ng-view=""></div>
         </div>
     </div>
     <!-- Google Analytics: change UA-XXXXX-X to be your site's ID -->
@@ -52,6 +53,7 @@
     <script src="scripts/controllers/event.js"></script>
     <script src="scripts/controllers/eventsettings.js"></script>
     <script src="scripts/controllers/settings.js"></script>
+    <script src="scripts/controllers/eventview.js"></script>
     <script src="scripts/components/db.js"></script>
     <script src="scripts/components/defaults.js"></script>
     <!-- endbuild -->

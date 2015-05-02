@@ -5,8 +5,8 @@
   "window": {
     "width": 1000,
     "height": 700,
-    "frame":false,
-    "toolbar":false
+    "frame":true,
+    "toolbar":true
   },
   "dependencies": {
     "csv-parse": "^0.1.1",

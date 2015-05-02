@@ -1,3 +1,4 @@
+/// <reference path="../../../typings/lodash/lodash.d.ts"/>
 angular.module('sdbaApp')
   .controller('EventSettingsCtrl', function($scope, DBService, $location, $rootScope) {
 
@@ -7,9 +8,10 @@ angular.module('sdbaApp')
     DBService.getActiveEvent()
       .then(function(e) {
         $scope.$apply($scope.eventSettings = e);
-        if ($scope.eventSettings.categories[0].hasOwnProperty('totalTeams')) {
+        if ($scope.eventSettings.hasOwnProperty('progressionGenerated')) {
           DBService.retrieve("race_" + $scope.eventSettings.eventID)
           .then(function(e){
+            console.log(e);
             if(e.rows.length !== 0) {
               $scope.$apply($scope.prior = true);
             }
@@ -53,29 +55,33 @@ angular.module('sdbaApp')
     var setRaceProgression = function() {
       DBService.getTeams(true)
         .then(function(teams) {
-          //this is done at 1am and i cant think anymore sorry about the mess.
-          _.forEach(teams.rows, function(team) {
-            _.forEach(team.doc.categories, function(cat) {
-              //todo rewrite this as _.find
-              _.forEach($scope.eventSettings.categories, function(c) {
-                if (c.id === cat.id) {
-                  if (!c.hasOwnProperty('totalTeams')) {
-                    c['totalTeams'] = 0;
-                  }
-                  c.totalTeams++;
-                }
-              });
+
+          var ts = _.map(teams.rows, function(val){
+            return val.doc;
+          });
+          
+          _.forEach($scope.eventSettings.categories, function(category) {
+            var teamsInThisCat = _.filter(ts, function(t) {
+              return t.categories.hasOwnProperty(category.id);
             });
+            
+            category.totalTeams = teamsInThisCat.length;
           });
 
           _.forEach($scope.eventSettings.categories, function(c) {
+            //set default lanes to 6 - allow this to be changed in options later;
             c.lanes = 6;
             c.progression = calculateRaceProgression(c.totalTeams, 6);
           });
-
-          DBService.db.put($scope.eventSettings);
+  	      //uncomment this!
+          //$scope.eventSettings.progressionGenerated = true;
+          return DBService.db.put($scope.eventSettings)
+        })
+        .then(function(results){
+          //update _rev;
+          console.log(results);
+          $scope.eventSettings._rev = results.rev;
           $scope.$apply($scope.eventSettings = $scope.eventSettings);
-
         });
     };
 
@@ -101,12 +107,9 @@ angular.module('sdbaApp')
 
           _.forEach($scope.eventSettings.categories, function(category) {
             var thisCatTeams = _.sortBy(_.filter(teams, function(team) {
-              return _.find(team.categories, {
-                'id': category.id
-              });
+              return team.categories.hasOwnProperty(category.id);
             }), 'rng');
 
-            console.log(thisCatTeams);
             //create heats/rounds
             var catFirstRound = [];
             //does this have heats?
@@ -143,31 +146,13 @@ angular.module('sdbaApp')
               }), function(team, index) {
                 var laneno = index +1;
                 event['LANE_'+laneno] = team.teamID;
-                /* required later
-                switch (index) {
-                  case 0:
-                    event['LANE_3'] = team.teamID;
-                    break;
-                  case 1:
-                    event['']
-                    break;
-                  case 2:
-                    break;
-                  case 3:
-                    break;
-                  case 4:
-                    break;
-                  case 5:
-                    break;
-                }
-                */
               });
               catFirstRound.push(event);
             }
 
             DBService.createRound(catFirstRound)
             .then(function(){
-              $scope.heatsGenerated = true;
+              $scope.$apply($scope.heatsGenerated = true);
             });
 
           });
@@ -177,7 +162,16 @@ angular.module('sdbaApp')
     }
 
     $scope.deleteEvent = function() {
-
+      console.log($scope.eventSettings);
+      DBService.deleteEvent()
+      .then(function(){
+        console.log("Event successfully deleted");
+        $location.path("/");
+      })
+      .catch(function(err){
+        console.log(err);
+        $location.path("/");
+      });
     };
 
   });

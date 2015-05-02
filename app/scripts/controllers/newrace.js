@@ -1,9 +1,11 @@
+/// <reference path="../../../typings/jquery/jquery.d.ts"/>
 angular.module('sdbaApp')
   .controller('NewEventCtrl', function($scope,DBService,$location,defaults) {
 
     var predefEvents = {};
     $scope.possibleEvents = {};
     $scope.chosenEvent = {};
+    $scope.noEvents = true;
 
     DBService.db.get('settings_app')
     .then(function(settings){
@@ -19,11 +21,17 @@ angular.module('sdbaApp')
           keyArr.push(event.doc.eventID);
         });
         var r = _.omit(predefEvents,keyArr);
+
+        if(Object.keys(r).length !== 0) {
+          $scope.noEvents = false;
+        }
+
         $scope.$apply($scope.possibleEvents = r);
       }
     });
 
     $scope.selectEvent = function(key,val) {
+      //add check here to ensure this event doesn't alrd exist!!
       $scope.chosenEvent.eventId = key;
       $scope.chosenEvent.name = val;
     }
@@ -56,13 +64,13 @@ angular.module('sdbaApp')
         DBService.setActiveEvent(eventSettings.eventID);
 
         //categories
-        eventSettings.categories = [];
+        eventSettings.categories = {};
         _.forEach(eventCat, function(category){
           var cat = {};
           //if the headings ever change, edit here.
           cat.id = category['ID'];
           cat.name = category['Category Name'];
-          eventSettings.categories.push(cat);
+          eventSettings.categories[category['ID']] = cat;
         });
         console.log("Done configuring categories");
 
@@ -87,7 +95,7 @@ angular.module('sdbaApp')
             var t = {};
             t.name = team['Team Name'];
             t.teamID = index + 1;
-            t.categories = [];
+            t.categories = {};
 
             //for every single category that exists, check if the team's col for that category isnt blank
             _.forEach(eventSettings.categories, function(cat){
@@ -96,7 +104,8 @@ angular.module('sdbaApp')
                   var c = {
                     id: cat.id
                   }
-                  t.categories.push(c);
+                  t.categories[cat.id] = c;
+                  console.log(t);
                 }
               }
             });
@@ -108,6 +117,8 @@ angular.module('sdbaApp')
         .then(function(){
           //great joy!
           //now go to eventSettings page
+          //either one of these has got to work.
+          $scope.$apply($location.path('/event/settings'));
           $location.path('/event/settings');
         })
         .catch(function(e){

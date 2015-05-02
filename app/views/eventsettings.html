@@ -25,15 +25,16 @@
         <table class="table table-bordered table-condensed">
             <thead>
                 <tr>
-                    <th>Cat. ID</th>
+                    <th>Cat.</th>
                     <th>Teams</th>
-                    <th>Rounds</th>
-                    <th>Heats</th>
+                    <th>RND</th>
+                    <th>HEAT</th>
                     <th>FL(H)</th>
-                    <th>Repechage</th>
-                    <th>Semifinals</th>
-                    <th>Minorfinals</th>
-                    <th>Grandfinals</th>
+                    <th>REPE</th>
+                    <th>SEMI</th>
+                    <th>PLATE</th>
+                    <th>MNFN</th>
+                    <th>GNFN</th>
                     <th>Options</th>
                 </tr>
             </thead>
@@ -46,6 +47,7 @@
                     <td>{{category.progression.FLH}}</td>
                     <td>{{category.progression.REPE}}</td>
                     <td>{{category.progression.SEMI}}</td>
+                    <td>{{category.progression.PLFN}}</td>
                     <td>{{category.progression.MNFN}}</td>
                     <td>{{category.progression.GNFN}}</td>
                     <td></td>
@@ -56,6 +58,17 @@
     <div class="panel panel-default">
         <div class="panel-heading">
             <h3 class="panel-title">Administrative</h3>
+        </div>
+        <div class="panel-body">
+            <p>Type <code>{{eventSettings.eventID}}</code> to delete the event. This cannot be undone!</p>
+
+                <div class="input-group">
+                    <input type="text" class="form-control" ng-model="confirmDeleteString"></input>
+                    <span class="input-group-btn">
+                        <button type="button" class="btn btn-danger" ng-click="deleteEvent()" ng-disabled="eventSettings.eventID != confirmDeleteString">Delete Event</button>
+                    </span>
+                </div>
+
         </div>
     </div>
 </div>

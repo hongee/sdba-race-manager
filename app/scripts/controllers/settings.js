@@ -67,9 +67,10 @@ angular.module('sdbaApp')
         $rootScope.settings[type + 'd'] = dir;
 
         $rootScope.db.put($rootScope.settings)
-          .then(function() {
+          .then(function(r) {
+            console.log(r);
+            $rootScope.settings._rev = r.rev;
             $scope.$apply($scope.appSettings = $rootScope.settings);
-
           })
           .catch(function(e) {
             console.log(e);

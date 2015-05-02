@@ -33,6 +33,10 @@ angular.module('sdbaApp')
         return this.retrieve('settings_event', true);
       },
 
+      getAllRaces: function(getDocs) {
+        return this.retrieve('race_' + activeEvent, getDocs);
+      },
+
       createEvent: function(event) {
         return $rootScope.db.put(event,'settings_event_'+event.eventID);
       },
@@ -50,6 +54,7 @@ angular.module('sdbaApp')
         });
         return $rootScope.db.bulkDocs(roundRaces);
       },
+
       getAllRacesOfRound: function(category,round) {
         return this.retrieve('race_' + activeEvent + '_' + category + '_' + round, true);
       },
@@ -95,6 +100,40 @@ angular.module('sdbaApp')
           include_docs: true,
           keys: teamArr
         });
+      },
+
+      deleteEvent: function(event) {
+        var d = $q.defer();
+        var thingsToDelete = [];
+
+        var ref = this;
+
+        this.getTeams(false)
+        .then(function(results){
+          Array.prototype.push.apply(thingsToDelete,results.rows);
+          return ref.getAllRaces(false);
+        })
+        .then(function(results){
+          Array.prototype.push.apply(thingsToDelete,results.rows);
+          return ref.getActiveEvent();
+        })
+        .then(function(event){
+          thingsToDelete.push(event);
+          _.forEach(thingsToDelete, function(item){
+            item._deleted = true;
+          });
+          console.log(thingsToDelete);
+          return ref.db.bulkDocs(thingsToDelete);
+        })
+        .then(function(){
+          d.resolve();
+        })
+        .catch(function(err){
+          console.log(err);
+          d.reject(err);
+        });
+
+        return d.promise;
       },
 
       db: $rootScope.db

@@ -1,6 +1,7 @@
 angular.module('sdbaApp')
   .controller('EventCtrl', function($scope, DBService, $location, $rootScope, $route) {
     $scope.waitOutput = false;
+    
     DBService.getActiveEvent()
       .then(function(e) {
         $scope.$apply($scope.event = e);
@@ -45,9 +46,7 @@ angular.module('sdbaApp')
         'roundNo': $scope.race.roundNo,
         'round': $scope.race.round
       });
-      scheduleItem.catName = _.find($scope.event.categories, {
-        'id': $scope.race.category
-      }).name;
+      scheduleItem.catName = $scope.event.categories[$scope.race.category].name;
       DBService.getRaceTeams($scope.race)
         .then(function(teams) {
           console.log(teams);
@@ -56,9 +55,7 @@ angular.module('sdbaApp')
           _.forEach(teams.rows, function(val, key) {
             console.log(val.doc.categories);
             console.log($scope.race.category);
-            var cat = _.find(val.doc.categories, {
-              'id': $scope.race.category
-            });
+            var cat = val.doc.categories[$scope.race.category];
             console.log(cat);
             cat[$scope.race.round] = {
               lane: key + 1,
@@ -130,9 +127,7 @@ angular.module('sdbaApp')
           });
           console.log(teams);
 
-          var cat = _.find($scope.event.categories, {
-            'id': $scope.race.category
-          });
+          var cat = $scope.event.categories[$scope.race.category];
           var next = "";
           console.log(cat);
 
@@ -394,9 +389,7 @@ angular.module('sdbaApp')
 
       //firms the team's timings
       _.forEach($scope.teams, function(team) {
-        var cat = _.find(team.categories, {
-          'id': $scope.race.category
-        });
+        var cat = team.categories[$scope.race.category];
         cat[$scope.race.round].time = team.latestTiming;
       });
 
@@ -409,9 +402,8 @@ angular.module('sdbaApp')
         var winningTeam = _.find($scope.teams, {
           'teamID': $scope.race.winner
         });
-        var c = _.find(winningTeam.categories, {
-          'id': $scope.race.category
-        });
+        var c = winningTeam.categories[$scope.race.category];
+        
         c[$scope.race.round].winner = true;
       }
 
@@ -429,9 +421,7 @@ angular.module('sdbaApp')
       DBService.db.bulkDocs(toBeUpdated)
         .then(function() {
           //is this the last event of the current round?
-          var raceCat = _.find($scope.event.categories, {
-            'id': $scope.race.category
-          });
+          var raceCat = $scope.event.categories[$scope.race.category];
           //these numbers must be set correctly from the start-- in eventSettingsjs
           if (parseInt($scope.race.roundNo) === raceCat.progression[$scope.race.round]) {
             //current round = total no. of rounds
@@ -447,7 +437,6 @@ angular.module('sdbaApp')
           console.log(err);
         });
     };
-
 
     $scope.outputEvent = function() {
       //here lies node.
@@ -491,9 +480,7 @@ angular.module('sdbaApp')
 
           team.latestTiming = Math.random() * 100.100;
 
-          var cat = _.find(team.categories, {
-            'id': $scope.race.category
-          });
+          var cat = team.categories[$scope.race.category];
           cat[$scope.race.round].roundNo = $scope.race.roundNo;
 
         });
@@ -550,9 +537,8 @@ angular.module('sdbaApp')
             if (!team) {
               break;
             }
-            var cat = _.find(team.categories, {
-              'id': $scope.race.category
-            });
+            team.categories[$scope.race.category];
+
             //cat[$scope.race.round].time = output[i][6];
             cat[$scope.race.round].roundNo = $scope.race.roundNo;
 

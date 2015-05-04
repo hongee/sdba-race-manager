@@ -1,0 +1,27 @@
+<div class="container content-wrap clearfix event-settings">
+  <h3>{{event.categories[race.category].name}} {{race.round}} is Complete.</h3>
+  <div class="panel panel-default" ng-repeat="promotion in promotions">
+    <div class="panel-body">
+      <h4 style="margin-top: 0">{{promotion.statement}}</h4>
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th class="col-sm-1">No.</th>
+                <th>Name</th>
+                <th class="col-sm-2">Race</th>
+                <th class="col-sm-1">Timing</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr ng-repeat="(key,team) in promotion.teams">
+                <td>{{key + 1}}</td>
+                <td>{{team.name}}</td>
+                <td>{{race.round}} {{team.categories[race.category][race.round].roundNo}}</td>
+                <td>{{team.categories[race.category][race.round].time | number}}</td>
+              </tr>
+            </tbody>
+          </table>
+    </div>
+  </div>
+  <button class="btn btn-default" ng-click="confirm()">Confirm and Proceed</button>
+</div>

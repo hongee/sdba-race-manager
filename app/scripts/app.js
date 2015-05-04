@@ -38,7 +38,11 @@ angular
         templateUrl: 'views/eventsettings.html',
         controller: 'EventSettingsCtrl'
       })
-      .when('/event/:eventID', {
+      .when('/event/nextround', {
+        templateUrl: 'views/completeround.html',
+        controller: 'NewRoundCtrl'
+      })
+      .when('/event/view/:eventID', {
         templateUrl: 'views/eventview.html',
         controller: 'EventViewCtrl'
       })
@@ -100,6 +104,15 @@ angular
       });
 
     //PouchDB.debug.enable('*');
+
+    $rootScope.$on("$routeChangeSuccess", function(event,next,current){
+      if(next.$$route.controller === 'EventViewCtrl') {
+        $rootScope.display = true;
+        $("body").addClass("no-bg");
+      } else {
+        $rootScope.display = false;
+      }
+    });
 
     //listen for app level setting changes
     $rootScope.changes = $rootScope.db.changes({

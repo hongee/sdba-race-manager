@@ -1,3 +1,39 @@
-<div class="container content-wrap clearfix">
+<div class="container content-wrap clearfix event-view">
   <h3>Event Results</h3>
+  <div class="panel panel-default" ng-repeat="category in event.categories">
+    <div class="panel-heading">
+      <h3 class="panel-title">{{category.name}}</h3>
+    </div>
+    <div class="panel-body">
+      <div class="panel panel-default" ng-repeat="(roundID,round) in category.rounds | orderBy: roundOrder(roundID)">
+        <div class="panel-body">
+          <h3 style="margin-top: 0">{{roundID}}</h3>
+          <div class="races">
+            <div ng-repeat="race in round" class="col-md-6 col-lg-4 race-item">
+              <table class="table table-bordered">
+                <thead>
+                  <tr>
+                    <th colspan="2" class="active">{{roundID}} {{race.roundNo}}</th>
+                  </tr>
+                  <tr>
+                    <th class="col-sm-1">Lane</th>
+                    <th>Name</th>
+                    <th class="col-sm-2">Timing</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr ng-repeat="(key,team) in race.teams" ng-class="{active: team.teamID === race.winner}">
+                    <td>{{key + 1}}</td>
+                    <td>{{team.name}}</td>
+                    <td ng-show="race.completed">{{team.categories[race.category][race.round].time | number}}</td>
+                    <td ng-hide="race.completed">TBC</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

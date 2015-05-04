@@ -9,7 +9,7 @@ angular.module('sdbaApp')
             GNFN: 1,
             alt: {
               RND: 1,
-              GNFN: 1
+              RND2: 1
             }
           }, {
             max_teams: 10,

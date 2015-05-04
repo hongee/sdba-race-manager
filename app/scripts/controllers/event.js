@@ -1,7 +1,7 @@
 angular.module('sdbaApp')
   .controller('EventCtrl', function($scope, DBService, $location, $rootScope, $route) {
     $scope.waitOutput = false;
-    
+
     DBService.getActiveEvent()
       .then(function(e) {
         $scope.$apply($scope.event = e);
@@ -12,7 +12,11 @@ angular.module('sdbaApp')
             DBService.db.get(e.activeRace)
               .then(function(r) {
                 $scope.$apply($scope.race = r);
-                presentRace();
+                if(DBService.newRoundReturn) {
+                  continueRace();
+                } else{
+                  presentRace();
+                }
               })
               .catch(function(err) {
                 console.log(err);
@@ -77,271 +81,6 @@ angular.module('sdbaApp')
         });
     };
 
-    var seedRound = function(round, cat, teams, sort) {
-
-      if (cat.lanes === 4) {
-        var seedOrder = [3, 2, 4, 1];
-      } else {
-        var seedOrder = [3, 4, 2, 5, 1, 6];
-      }
-
-      var races = [];
-      //sort teams by time
-      //only sort if requested
-      if (sort) {
-        var sortedTeams = _.sortBy(teams, 'latestTiming');
-      }
-
-      for (var i = 1; i <= cat.progression[round]; i++) {
-        var event = {
-          round: round,
-          category: cat.id,
-          roundNo: i
-        };
-
-        _.forEach(_.filter(teams, function(val, index) {
-          if ((index - i - 1) % cat.progression[round] === 0) {
-            return true;
-          }
-        }), function(team, index) {
-          var laneno = seedOrder[index];
-          event['LANE_' + laneno] = team.teamID;
-        });
-
-        races.push(event);
-      };
-
-      console.log(races);
-      return DBService.createRound(races);
-
-    };
-
-    var generateNextRound = function() {
-      //what round is this?
-      //Race Progression Logic lies here
-      DBService.getTeams(true)
-        .then(function(r) {
-          console.log(r);
-          var teams = _.map(r.rows, function(t) {
-            return t.doc;
-          });
-          console.log(teams);
-
-          var cat = $scope.event.categories[$scope.race.category];
-          var next = "";
-          console.log(cat);
-
-          switch ($scope.race.round) {
-            case 'HEAT':
-              console.log("finished heats");
-              //populate REPE first
-              var teamIDArr = [];
-              var winnersArr = [];
-
-              //remove winning teams
-              DBService.getAllRacesOfRound($scope.race.category, 'HEAT')
-                .then(function(r) {
-                  //yay all heats
-                  console.log("result of all race");
-                  console.log(r);
-                  var races = _.map(r.rows, function(r) {
-                    return r.doc;
-                  })
-                  _.forEach(races, function(race) {
-                    _.forEach(race, function(val, key) {
-                      if (key.includes('LANE')) {
-                        teamIDArr.push(val);
-                      }
-                    });
-                    winnersArr.push(race.winner);
-                  });
-                  var remainder = _.difference(teamIDArr, winnersArr);
-                  console.log("remaining ids");
-                  console.log(remainder);
-                  console.log(winnersArr);
-                  return DBService.getTeamsFromArray(remainder);
-
-                })
-                .then(function(re) {
-                  var teams = _.map(re.rows, function(r) {
-                    return r.doc;
-                  });
-                  //get fastest losers - rest seed into repe
-                  var sortedTeams = _.sortBy(teams, 'latestTiming');
-
-                  //removing fastest losers
-                  if (cat.progression.hasOwnProperty('FLH')) {
-                    console.log("FLH: " + cat.progression.FLH);
-                    var fl = _.take(sortedTeams, cat.progression.FLH);
-                    var repeTeams = _.drop(sortedTeams, cat.progression.FLH);
-                  } else {
-                    var repeTeams = sortedTeams;
-                  }
-
-                  //convert winners id into teams
-
-                  //stores the fastest losers in event for future
-
-                  DBService.getTeamsFromArray(winnersArr)
-                    .then(function(r) {
-                      var winTeams = _.map(r.rows, function(r) {
-                        return r.doc;
-                      });
-
-                      cat['HEAT_winners'] = winTeams;
-                      cat['HEAT_fl'] = fl;
-
-                      console.log("Seeding REPE with");
-                      console.log(repeTeams);
-
-                      return seedRound('REPE', cat, repeTeams)
-                    })
-                    .then(function() {
-                      continueRace();
-                    })
-                    .catch(function(err) {
-                      console.log(err);
-                    });
-                })
-                .catch(function(err) {
-                  console.log(err);
-                });
-              break;
-            case 'RND':
-              //This will be a bit more complex - the winners will be reseeded
-              //into a round called RN2 based on their timings
-              //DO THIS!!!
-              break;
-            case 'REPE':
-              console.log("finished REPE");
-              if (cat.progression.hasOwnProperty('SEMI')) {
-                next = "SEMI";
-                //no. I can send
-                var quantity = (cat.progression.SEMI * cat.lanes);
-              } else {
-                next = "GNFN";
-                var quantity = 6;
-              }
-              //how many people can I send?
-              quantity -= (cat.HEAT_winners.length + cat.HEAT_fl.length);
-
-
-              DBService.getAllRacesOfRound($scope.race.category, 'REPE')
-                .then(function(r) {
-                  //yay all REPEs
-                  var races = _.map(r.rows, function(r) {
-                    return r.doc;
-                  });
-
-                  var repeArr = [];
-
-                  _.forEach(races, function(race) {
-                    _.forEach(race, function(val, key) {
-                      if (key.includes('LANE')) {
-                        repeArr.push(val);
-                      }
-                    });
-                  });
-                  return DBService.getTeamsFromArray(repeArr);
-                })
-                .then(function(r) {
-                  var teams = _.map(r.rows, function(r) {
-                    return r.doc;
-                  });
-                  var sortedTeams = _.sortBy(teams, 'latestTiming');
-                  var promoted = _.take(sortedTeams, quantity);
-
-                  //as per rules - Sorted heat winners, FLs (already sorted), current promotees
-                  var toSeed = [];
-                  Array.prototype.push.apply(toSeed, _.sortBy(cat.HEAT_winners, 'latestTiming'));
-                  Array.prototype.push.apply(toSeed, cat.HEAT_fl);
-                  Array.prototype.push.apply(toSeed, promoted);
-
-                  return seedRound(next, cat, toSeed);
-                })
-                .then(function() {
-                  continueRace();
-                })
-                .catch(function(err) {
-                  console.log(err);
-                });
-              break;
-            case 'SEMI':
-              console.log("finished SEMI");
-              var winnersArr = [];
-              var minor = [];
-              DBService.getAllRacesOfRound($scope.race.category, 'SEMI')
-                .then(function(r) {
-                  var races = _.map(r.rows, function(r) {
-                    return r.doc;
-                  });
-
-                  var semiArr = [];
-                  _.forEach(races, function(race) {
-                    _.forEach(race, function(val, key) {
-                      if (key.includes('LANE')) {
-                        semiArr.push(val);
-                      }
-                    });
-                    winnersArr.push(race.winner);
-                  });
-                  return DBService.getTeamsFromArray(semiArr);
-                })
-                .then(function(r) {
-                  var teams = _.map(r.rows, function(r) {
-                    return r.doc;
-                  });
-
-                  var winnerTeams = _.filter(teams, function(team) {
-                    return _.includes(winnersArr, team.teamID);
-                  });
-
-                  var rTeams = _.filter(teams, function(team) {
-                    return !(_.includes(winnersArr, team.teamID));
-                  });
-
-                  var sortedWinners = _.sortBy(winnerTeams, 'latestTiming');
-                  var sortedTeams = _.sortBy(rTeams, 'latestTiming');
-
-                  //put first 6 into grand
-                  Array.prototype.push.apply(sortedWinners, _.take(sortedTeams, 6 - sortedWinners.length));
-                  sortedTeams = _.drop(sortedTeams, 6 - sortedWinners.length);
-                  Array.prototype.push.apply(minor, _.take(sortedTeams, 6));
-
-                  return seedRound("GDFN", cat, sortedWinners);
-                })
-                .then(function(r) {
-                  if (cat.progression.hasOwnProperty('MNFN')) {
-                    seedRound("MNFN", cat, minor)
-                      .then(function() {
-                        continueRace();
-                      });
-                  } else {
-                    continueRace();
-                  }
-                })
-                .catch(function(err) {
-                  console.log(err);
-                });
-
-              //Winners go GNFN, fill GN,MN with next fastest,
-              break;
-            case 'MNFN':
-              continueRace();
-              //Nothing to do here
-              break;
-            case 'GNFN':
-              continueRace();
-              //Nothing to do here.
-              break;
-            case 'RN2':
-              //promote to GNFN??
-              break;
-          }
-        });
-
-    };
-
     var continueRace = function(i) {
       //sets new active race, save the $scope.event, reloads view
       console.log("going to next event");
@@ -371,7 +110,7 @@ angular.module('sdbaApp')
             console.log(err);
             if (err.status == 404) {
               //event doesnt exist in schedule
-              continueRace(currentIndex + 1);
+              continueRace(currentIndex++);
             }
           });
       }
@@ -387,25 +126,25 @@ angular.module('sdbaApp')
 
     $scope.nextRace = function() {
 
+
       //firms the team's timings
       _.forEach($scope.teams, function(team) {
         var cat = team.categories[$scope.race.category];
-        cat[$scope.race.round].time = team.latestTiming;
+        cat[$scope.race.round].time = team["latestTiming_" + cat.id];
       });
 
       console.log($scope.teams);
       console.log($scope.event);
 
-      if ($scope.race.round === "HEAT" || $scope.race.round === "SEMI") {
-        var s = _.sortBy($scope.teams, 'latestTiming');
+      //set the race winner
+        var s = _.sortBy($scope.teams, 'latestTiming_' + $scope.race.category);
         $scope.race.winner = s[0].teamID;
         var winningTeam = _.find($scope.teams, {
           'teamID': $scope.race.winner
         });
         var c = winningTeam.categories[$scope.race.category];
-        
+
         c[$scope.race.round].winner = true;
-      }
 
       console.log("winner is");
       console.log($scope.race);
@@ -419,14 +158,15 @@ angular.module('sdbaApp')
       console.log(toBeUpdated);
 
       DBService.db.bulkDocs(toBeUpdated)
-        .then(function() {
+        .then(function(r) {
           //is this the last event of the current round?
           var raceCat = $scope.event.categories[$scope.race.category];
           //these numbers must be set correctly from the start-- in eventSettingsjs
           if (parseInt($scope.race.roundNo) === raceCat.progression[$scope.race.round]) {
             //current round = total no. of rounds
             //generate next round then go next race
-            generateNextRound();
+            $scope.$apply($location.path("/event/nextround"));
+            $location.path("/event/nextround");
           } else {
             //go to next race;
             continueRace();
@@ -477,10 +217,9 @@ angular.module('sdbaApp')
         console.log("simulating RESULTS!");
         watcher.close();
         _.forEach($scope.teams, function(team) {
-
-          team.latestTiming = Math.random() * 100.100;
-
           var cat = team.categories[$scope.race.category];
+          team['latestTiming_' + cat.id] = Math.random() * 100.100;
+
           cat[$scope.race.round].roundNo = $scope.race.roundNo;
 
         });
@@ -542,7 +281,7 @@ angular.module('sdbaApp')
             //cat[$scope.race.round].time = output[i][6];
             cat[$scope.race.round].roundNo = $scope.race.roundNo;
 
-            team.latestTiming = output[i][6];
+            team['latestTiming_' + $scope.race.category.id] = output[i][6];
           }
 
           console.log($scope.teams);

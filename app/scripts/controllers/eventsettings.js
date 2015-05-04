@@ -25,7 +25,7 @@ angular.module('sdbaApp')
         $location.path("/");
       });
 
-    var calculateRaceProgression = function(teams, lanes) {
+    var calculateRaceProgression = function(teams, lanes, cat) {
       if (lanes === 6) {
         lanes = "six"
       } else {
@@ -49,7 +49,18 @@ angular.module('sdbaApp')
       }
       */
 
-      return setting;
+      if(cat.quickElimination) {
+        if(setting.hasOwnProperty('REPE')) {
+          delete setting.REPE;
+        }
+      }
+
+      if(cat.rounds) {
+        return setting.alt;
+      } else {
+        return setting;
+      }
+
     };
 
     var setRaceProgression = function() {
@@ -59,23 +70,32 @@ angular.module('sdbaApp')
           var ts = _.map(teams.rows, function(val){
             return val.doc;
           });
-          
+
           _.forEach($scope.eventSettings.categories, function(category) {
             var teamsInThisCat = _.filter(ts, function(t) {
               return t.categories.hasOwnProperty(category.id);
             });
-            
+
             category.totalTeams = teamsInThisCat.length;
           });
 
           _.forEach($scope.eventSettings.categories, function(c) {
             //set default lanes to 6 - allow this to be changed in options later;
-            c.lanes = 6;
-            c.progression = calculateRaceProgression(c.totalTeams, 6);
+            c.progression = calculateRaceProgression(c.totalTeams, c.lanes, c);
           });
   	      //uncomment this!
-          //$scope.eventSettings.progressionGenerated = true;
-          return DBService.db.put($scope.eventSettings)
+          /*
+
+
+            FOR TESTING RMB TO DISABLE THIS
+
+
+           */
+          $scope.eventSettings.progressionGenerated = true;
+
+          $scope.eventSettings.scheduleErrors = validateSchedule($scope.eventSettings);
+
+          return DBService.db.put($scope.eventSettings);
         })
         .then(function(results){
           //update _rev;
@@ -83,6 +103,72 @@ angular.module('sdbaApp')
           $scope.eventSettings._rev = results.rev;
           $scope.$apply($scope.eventSettings = $scope.eventSettings);
         });
+    };
+
+    var validateSchedule = function(event) {
+
+      var errors = [];
+
+      _.forEach(event.categories, function(category) {
+        _.forEach(category.progression, function(roundNo, round){
+
+          var ignore = ["FLH","max_teams"];
+          if(_.includes(ignore,round)) {
+            return;
+          }
+
+          var scheduledItems = _.sortBy(_.filter(event.schedule, {'category':category.id,'round':round}), 'roundNo');
+
+          //are there missing items?
+          for(var i = 1;i <= roundNo;i++) {
+
+            var filtered = _.filter(scheduledItems,{'roundNo': i});
+
+            if(filtered.length === 0) {
+              //missing
+              errors.push({
+                type: 404,
+                category: category.id,
+                round: round,
+                roundNo: i
+              });
+            } else if(filtered.length > 1) {
+              //duplicates
+              errors.push({
+                type: 405,
+                category: category.id,
+                round: round,
+                roundNo: i
+              });
+            }
+
+          }
+
+          var checkExtra = function(c) {
+            if(scheduledItems[c].roundNo > roundNo) {
+              //extra
+              errors.push({
+                type:403,
+                category: category.id,
+                round: round,
+                roundNo: scheduledItems[c].roundNo
+              });
+              checkExtra(c-1);
+            } else {
+              return;
+            }
+          }
+
+          //are there extra items?
+          if(scheduledItems.length > roundNo) {
+            checkExtra(scheduledItems.length - 1);
+          }
+
+        });
+      });
+
+      return errors;
+
     };
 
     $scope.generateHeats = function() {
@@ -94,8 +180,8 @@ angular.module('sdbaApp')
           });
 
           var RNGArray = [];
-          //generate an array of numbers from 1 - 1000  then popping the arr to ensure no repeats
-          for (var i = 1; i <= 1000; i++) {
+          //generate an array of numbers from 1 - 9999  then popping the arr to ensure no repeats
+          for (var i = 1; i <= 9999; i++) {
             RNGArray.push(i);
           }
 

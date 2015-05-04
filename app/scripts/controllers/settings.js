@@ -34,10 +34,11 @@ angular.module('sdbaApp')
 
       $rootScope.settings.predefEvents[$scope.newEvent.key] = $scope.newEvent.name;
       $rootScope.db.put($rootScope.settings)
-        .then(function() {
+        .then(function(r) {
           $scope.add = false;
           $scope.edit = '';
           $scope.newEvent = {};
+          $rootScope.settings._rev = r.rev;
         })
         .catch(function(e) {
           console.log(e);

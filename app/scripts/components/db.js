@@ -10,6 +10,7 @@ angular.module('sdbaApp')
 
     var activeEvent = "";
     var activeRace = "";
+    var isNewRound = false;
 
     return {
       //retrieve uses the id to get stuff in a performant manner
@@ -21,6 +22,9 @@ angular.module('sdbaApp')
           endkey: id + '_\uffff'
         });
       },
+
+      newRoundReturn: isNewRound,
+
       setActiveRace: function(raceId) {
         activeRace = raceId;
       },

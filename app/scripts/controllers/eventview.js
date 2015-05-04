@@ -6,6 +6,13 @@ angular.module('sdbaApp')
 
     $scope.event = {};
 
+    $scope.roundOrder = function(roundId) {
+      var order =
+      ["HEAT","RND","RND2", "REPE", "SEMI", "PLFN", "MNFN", "GNFN"];
+
+      return _.indexOf(order,roundId);
+    }
+
     var loadAll = function() {
       DBService.setActiveEvent($routeParams.eventID)
       DBService.getActiveEvent()
@@ -13,8 +20,8 @@ angular.module('sdbaApp')
         $scope.$apply($scope.event = event);
         //get all the races of each category - then sort them into the respective
         console.log(event);
-        _.forEach($scope.event.categories, function(cat) {
-          cat.races = {};
+        _.forEach($scope.event.categories, function(cat, catID) {
+          cat.rounds = {};
           _.forEach(cat.progression, function(val, round) {
             //irrelevant keys to ignore
             var ignore = ["FLH","max_teams"];
@@ -33,8 +40,9 @@ angular.module('sdbaApp')
                       return team.doc;
                     });
                     race.teams = teams;
-                    cat.races[round] = races;
-                    console.log(cat);
+                    cat.rounds[round] = races;
+                    $scope.$apply($scope.event.categories[catID] = cat);
+                    console.log($scope.event);
                   });
                 })
 

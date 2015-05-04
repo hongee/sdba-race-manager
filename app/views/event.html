@@ -16,12 +16,12 @@
                     <td>{{key + 1}}</td>
                     <td>{{val.name}}</td>
                     <td>{{val.teamID}}</td>
-                    <td ng-show="race.completed">{{val.latestTiming}}</td>
+                    <td ng-show="race.completed">{{val["latestTiming_" + race.category]}}</td>
                 </tr>
             </tbody>
         </table>
     </div>
-    <a type="button" class="btn btn-default pull-left" target="_blank" href="#/event/{{event.eventID}}">View Event Progression</a>
+    <a type="button" class="btn btn-default pull-left" target="_blank" href="#/event/view/{{event.eventID}}">View Event Progression</a>
     <button type="button" class="btn btn-default pull-right" ng-show="race.completed" ng-click="nextRace()">Confirm Race Timings</button>
     <button type="button" class="btn btn-default pull-right" ng-hide="race.completed" ng-click="outputEvent()">Confirm</button>
 </div>

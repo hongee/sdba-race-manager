@@ -22,15 +22,71 @@ angular.module('sdbaApp')
       });
 
 
-    $scope.confirm = function() {
+    $scope.confirm = function(isFinals) {
       //open the print page with all the teams of the next round
       //returns back to events
+
+      if(isFinals) {
+          DBService.newRoundReturn = true;
+          $location.path("/event");
+          return;
+      }
+
       DBService.createRound($scope.races)
+        .then(function() {
+          return DBService.db.put($scope.event);
+        })
         .then(function() {
           DBService.newRoundReturn = true;
           console.log("success");
-          $location.path("/event");
+          $scope.$apply($location.path("/event"));
         }); //
+    }
+
+    var displayFinalsWinner = function(round, cat) {
+      var roundName = {
+        RND2: 'final round',
+        GNFN: 'Grandfinals',
+        PLFN: 'Platefinals',
+        MNFN: 'Minorfinals'
+      }
+
+      var roundName = roundName[round];
+
+      DBService.getAllRacesOfRound($scope.race.category, round)
+        .then(function(r) {
+
+          var races = _.map(r.rows, function(r) {
+            return r.doc;
+          });
+
+          var rndArr = [];
+
+          _.forEach(races, function(race) {
+            _.forEach(race, function(val, key) {
+              if (key.includes('LANE')) {
+                rndArr.push(val);
+              }
+            });
+          });
+          return DBService.getTeamsFromArray(rndArr);
+        })
+        .then(function(r) {
+          var teams = _.map(r.rows, function(r) {
+            return r.doc;
+          });
+          var sortedTeams = _.sortBy(teams, 'latestTiming_' + cat.id);
+
+          var p = [];
+
+          p.push({
+            statement: "Results of the " + roundName,
+            teams: sortedTeams
+          });
+
+          $scope.$apply($scope.promotions = p);
+          $scope.$apply($scope.isFinals = true);
+        });
     }
 
     var seedRound = function(round, cat, teams, sort) {
@@ -59,7 +115,7 @@ angular.module('sdbaApp')
         };
 
         _.forEach(_.filter(teams, function(val, index) {
-          if ((index - i - 1) % cat.progression[round] === 0) {
+          if (index % cat.progression[round] === (i - 1)) {
             return true;
           }
         }), function(team, index) {
@@ -97,7 +153,7 @@ angular.module('sdbaApp')
               var winnersArr = [];
 
               //is there a SEMI?
-              if(cat.progression.hasOwnProperty("SEMI")) {
+              if (cat.progression.hasOwnProperty("SEMI")) {
                 next = "SEMI";
               } else {
                 next = "GNFN";
@@ -285,9 +341,10 @@ angular.module('sdbaApp')
 
                   p.push({
                     statement: "The following Repechage teams have been promoted to " + nextName,
-                    teams: toSeed
+                    teams: promoted
                   });
 
+                  $scope.$apply($scope.promotions = p);
                   seedRound(next, cat, toSeed);
                 });
               break;
@@ -330,10 +387,13 @@ angular.module('sdbaApp')
                   var sortedTeams = _.sortBy(rTeams, 'latestTiming_' + cat.id);
 
                   //put first 6 into grand
-                  Array.prototype.push.apply(sortedWinners, _.take(sortedTeams, cat.lanes - sortedWinners.length));
-                  sortedTeams = _.drop(sortedTeams, cat.lanes - sortedWinners.length);
+
+                  var flToGf = cat.lanes - sortedWinners.length;
+
+                  Array.prototype.push.apply(sortedWinners, _.take(sortedTeams, flToGf));
+                  sortedTeams = _.drop(sortedTeams, flToGf);
                   Array.prototype.push.apply(minor, _.take(sortedTeams, cat.lanes));
-                  sortedTeams = _.drop(sortedTeams, cat.lanes - cat.lanes);
+                  sortedTeams = _.drop(sortedTeams, cat.lanes);
                   Array.prototype.push.apply(plate, _.take(sortedTeams, cat.lanes));
 
                   var p = [];
@@ -360,23 +420,27 @@ angular.module('sdbaApp')
                     });
                   }
 
+                  $scope.$apply($scope.promotions = p);
 
                 });
               //Winners go GNFN, fill GN,MN with next fastest,
               break;
             case 'MNFN':
-
+              displayFinalsWinner('MNFN',cat);
               //Nothing to do here
               //go back to event.js
               break;
             case 'GNFN':
-
+              displayFinalsWinner('GNFN',cat);
               //Nothing to do here.
               //go back to event.js
-
               break;
             case 'RND2':
+              displayFinalsWinner('RND2',cat);
               //promote to GNFN??
+              break;
+            case 'PLFN':
+              displayFinalsWinner('PLFN',cat);
               break;
           }
         });

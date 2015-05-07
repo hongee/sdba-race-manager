@@ -1,29 +1,33 @@
 <div class="jumbotron event clearfix" ng-hide="waitOutput">
-    <h3>{{event.name}}</h3>
-    <h5>Event No. {{schedule.id}} | {{schedule.catName}} | {{schedule.round}} {{schedule.roundNo}}</h5>
-    <div class="panel panel-default">
-        <table class="table table-bordered table-condensed">
-            <thead>
-                <tr>
-                    <th>Lane</th>
-                    <th class="col-sm-8">Team Name</th>
-                    <th>Team ID</th>
-                    <th ng-show="race.completed">Timings</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr ng-repeat="(key,val) in teams">
-                    <td>{{key + 1}}</td>
-                    <td>{{val.name}}</td>
-                    <td>{{val.teamID}}</td>
-                    <td ng-show="race.completed">{{val["latestTiming_" + race.category]}}</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-    <a type="button" class="btn btn-default pull-left" target="_blank" href="#/event/view/{{event.eventID}}">View Event Progression</a>
-    <button type="button" class="btn btn-default pull-right" ng-show="race.completed" ng-click="nextRace()">Confirm Race Timings</button>
-    <button type="button" class="btn btn-default pull-right" ng-hide="race.completed" ng-click="outputEvent()">Confirm</button>
+  <h3>{{event.name}}
+  <span><a type="btn btn-default" href="#/event/settings"><span class="glyphicon glyphicon-cog" style="font-size:18px;"></span>
+  </a>
+  </span>
+  </h3>
+  <h5>Event No. {{schedule.id}} | {{schedule.catName}} | {{schedule.round}} {{schedule.roundNo}}</h5>
+  <div class="panel panel-default">
+    <table class="table table-bordered table-condensed">
+      <thead>
+        <tr>
+          <th>Lane</th>
+          <th class="col-sm-8">Team Name</th>
+          <th>Team ID</th>
+          <th ng-show="race.completed">Timings</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="(key,val) in teams">
+          <td>{{key + 1}}</td>
+          <td>{{val.name}}</td>
+          <td>{{val.teamID}}</td>
+          <td ng-show="race.completed">{{val["latestTiming_" + race.category] | number}}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <a type="button" class="btn btn-default pull-left" target="_blank" href="#/event/view/{{event.eventID}}">View Event Progression</a>
+  <button type="button" class="btn btn-default pull-right" ng-show="race.completed" ng-click="nextRace()">Confirm Race Timings</button>
+  <button type="button" class="btn btn-default pull-right" ng-hide="race.completed" ng-click="outputEvent()">Confirm</button>
 </div>
 <div class="jumbotron event clearfix" ng-show="waitOutput">
   <h3>EVT File Generated. Awaiting Race Results</h3>

@@ -10,12 +10,12 @@ angular.module('sdbaApp')
         $scope.$apply($scope.eventSettings = e);
         if ($scope.eventSettings.hasOwnProperty('progressionGenerated')) {
           DBService.retrieve("race_" + $scope.eventSettings.eventID)
-          .then(function(e){
-            console.log(e);
-            if(e.rows.length !== 0) {
-              $scope.$apply($scope.prior = true);
-            }
-          });
+            .then(function(e) {
+              console.log(e);
+              if (e.rows.length !== 0) {
+                $scope.$apply($scope.prior = true);
+              }
+            });
         } else {
           setRaceProgression();
         }
@@ -49,13 +49,13 @@ angular.module('sdbaApp')
       }
       */
 
-      if(cat.quickElimination) {
-        if(setting.hasOwnProperty('REPE')) {
+      if (cat.quickElimination) {
+        if (setting.hasOwnProperty('REPE')) {
           delete setting.REPE;
         }
       }
 
-      if(cat.rounds) {
+      if (cat.rounds) {
         return setting.alt;
       } else {
         return setting;
@@ -67,7 +67,7 @@ angular.module('sdbaApp')
       DBService.getTeams(true)
         .then(function(teams) {
 
-          var ts = _.map(teams.rows, function(val){
+          var ts = _.map(teams.rows, function(val) {
             return val.doc;
           });
 
@@ -83,7 +83,7 @@ angular.module('sdbaApp')
             //set default lanes to 6 - allow this to be changed in options later;
             c.progression = calculateRaceProgression(c.totalTeams, c.lanes, c);
           });
-  	      //uncomment this!
+          //uncomment this!
           /*
 
 
@@ -93,82 +93,16 @@ angular.module('sdbaApp')
            */
           $scope.eventSettings.progressionGenerated = true;
 
-          $scope.eventSettings.scheduleErrors = validateSchedule($scope.eventSettings);
+          $scope.eventSettings.scheduleErrors = DBService.validateSchedule($scope.eventSettings);
 
           return DBService.db.put($scope.eventSettings);
         })
-        .then(function(results){
+        .then(function(results) {
           //update _rev;
           console.log(results);
           $scope.eventSettings._rev = results.rev;
           $scope.$apply($scope.eventSettings = $scope.eventSettings);
         });
-    };
-
-    var validateSchedule = function(event) {
-
-      var errors = [];
-
-      _.forEach(event.categories, function(category) {
-        _.forEach(category.progression, function(roundNo, round){
-
-          var ignore = ["FLH","max_teams"];
-          if(_.includes(ignore,round)) {
-            return;
-          }
-
-          var scheduledItems = _.sortBy(_.filter(event.schedule, {'category':category.id,'round':round}), 'roundNo');
-
-          //are there missing items?
-          for(var i = 1;i <= roundNo;i++) {
-
-            var filtered = _.filter(scheduledItems,{'roundNo': i});
-
-            if(filtered.length === 0) {
-              //missing
-              errors.push({
-                type: 404,
-                category: category.id,
-                round: round,
-                roundNo: i
-              });
-            } else if(filtered.length > 1) {
-              //duplicates
-              errors.push({
-                type: 405,
-                category: category.id,
-                round: round,
-                roundNo: i
-              });
-            }
-
-          }
-
-          var checkExtra = function(c) {
-            if(scheduledItems[c].roundNo > roundNo) {
-              //extra
-              errors.push({
-                type:403,
-                category: category.id,
-                round: round,
-                roundNo: scheduledItems[c].roundNo
-              });
-              checkExtra(c-1);
-            } else {
-              return;
-            }
-          }
-
-          //are there extra items?
-          if(scheduledItems.length > roundNo) {
-            checkExtra(scheduledItems.length - 1);
-          }
-
-        });
-      });
-
-      return errors;
-
     };
 
     $scope.generateHeats = function() {
@@ -226,20 +160,23 @@ angular.module('sdbaApp')
               };
               //populate lanes by refering to indexes that are multiples of i (striping?)
               _.forEach(_.filter(thisCatTeams, function(val, index) {
-                if ((index - i - 1) % firstRound.limit === 0){
+                if (index % firstRound.limit === (i-1)) {
                   return true;
                 }
               }), function(team, index) {
-                var laneno = index +1;
-                event['LANE_'+laneno] = team.teamID;
+                var laneno = index + 1;
+                event['LANE_' + laneno] = team.teamID;
               });
               catFirstRound.push(event);
             }
 
+            console.log(catFirstRound);
+
             DBService.createRound(catFirstRound)
-            .then(function(){
-              $scope.$apply($scope.heatsGenerated = true);
-            });
+              .then(function() {
+                $scope.$apply($scope.heatsGenerated = true);
+                $scope.$apply($scope.prior = true);
+              });
 
           });
 
@@ -250,14 +187,14 @@ angular.module('sdbaApp')
     $scope.deleteEvent = function() {
       console.log($scope.eventSettings);
       DBService.deleteEvent()
-      .then(function(){
-        console.log("Event successfully deleted");
-        $location.path("/");
-      })
-      .catch(function(err){
-        console.log(err);
-        $location.path("/");
-      });
+        .then(function() {
+          console.log("Event successfully deleted");
+          $location.path("/");
+        })
+        .catch(function(err) {
+          console.log(err);
+          $location.path("/");
+        });
     };
 
   });

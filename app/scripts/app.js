@@ -17,7 +17,8 @@ angular
     'ngRoute',
     'ngSanitize',
     'ngTouch',
-    'ui.bootstrap'
+    'ui.bootstrap',
+    'ui.sortable'
   ])
   .config(function($routeProvider) {
     //this looks like shit
@@ -42,7 +43,15 @@ angular
         templateUrl: 'views/completeround.html',
         controller: 'NewRoundCtrl'
       })
-      .when('/event/view/:eventID', {
+      .when('/event/schedule', {
+        templateUrl: 'views/eventschedule.html',
+        controller: 'EventScheduleCtrl'
+      })
+      .when('/event/manager/:eventID', {
+        templateUrl: 'views/eventmanager.html',
+        controller: 'EventManagerCtrl'
+      })
+      .when('/event/view/:eventID/:category?/:round?', {
         templateUrl: 'views/eventview.html',
         controller: 'EventViewCtrl'
       })
@@ -75,9 +84,10 @@ angular
       raceProgression: defaults.raceProgression
     };
 
+    var remoteDB = new PouchDB(remote);
 
     //syncs up our local db to remote continuously, and retrying when it fails
-    PouchDB.sync('sdba', remote, opts);
+    PouchDB.sync('sdba', remoteDB, opts);
 
     //fetch the app settings from the db. if it doesnt exist, populate using default
     $rootScope.db.get('settings_app')
@@ -115,6 +125,7 @@ angular
     });
 
     //listen for app level setting changes
+    /*
     $rootScope.changes = $rootScope.db.changes({
         since: 'now',
         live: true,
@@ -128,6 +139,7 @@ angular
       .on('error', function(err) {
         console.log(err);
       });
+    */
 
   })
   .controller('NavBarCtrl', function($scope, $window, $route) {
@@ -150,4 +162,22 @@ angular
     $scope.close = function() {
     };
 
+  })
+  .filter('orderByRounds', function() {
+    return function(input) {
+      var output = [];
+
+      var arr = _.map(input, function(item, key){
+        //key is RND, GNFN etc
+        var order = ["HEAT","RND","RND2", "REPE", "SEMI", "PLFN", "MNFN", "GNFN"];
+
+        item.keyIndex = _.indexOf(order, key);
+        item.round = key;
+        return item;
+      });
+
+      output = _.sortBy(arr,'keyIndex');
+
+      return output;
+    }
   });

@@ -23,5 +23,6 @@
           </table>
     </div>
   </div>
-  <button class="btn btn-default" ng-click="confirm()">Confirm and Proceed</button>
+  <button class="btn btn-default" ng-show="isFinals" ng-click="confirm(true)">Next Event</button>
+  <button class="btn btn-default" ng-hide="isFinals" ng-click="confirm()">Confirm and Proceed</button>
 </div>

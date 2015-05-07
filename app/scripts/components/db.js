@@ -96,13 +96,19 @@ angular.module('sdbaApp')
         var teamArr = [];
         _.forEach(race, function(val,key){
           if(key.includes('LANE')) {
-            teamArr.push('team_' + activeEvent + '_' + val);
+            teamArr.push({key: parseInt(key.match(/\d+/)[0]) , team: 'team_' + activeEvent + '_' + val});
           }
         });
 
+        var r = _.map(_.sortBy(teamArr,'key'), function(team){
+          return team.team;
+        });
+
+        console.log(r);
+
         return $rootScope.db.allDocs({
           include_docs: true,
-          keys: teamArr
+          keys: r
         });
       },
 
@@ -114,20 +120,31 @@ angular.module('sdbaApp')
 
         this.getTeams(false)
         .then(function(results){
+          console.log(results);
           Array.prototype.push.apply(thingsToDelete,results.rows);
           return ref.getAllRaces(false);
         })
         .then(function(results){
+          console.log(results);
           Array.prototype.push.apply(thingsToDelete,results.rows);
           return ref.getActiveEvent();
         })
         .then(function(event){
-          thingsToDelete.push(event);
-          _.forEach(thingsToDelete, function(item){
+          var things = _.map(thingsToDelete, function(thing) {
+            var t = {
+              _id: thing.id,
+              _rev: thing.value.rev
+            }
+
+            return t;
+          });
+
+          things.push(event);
+          _.forEach(things, function(item){
             item._deleted = true;
           });
-          console.log(thingsToDelete);
-          return ref.db.bulkDocs(thingsToDelete);
+          console.log(things);
+          return ref.db.bulkDocs(things);
         })
         .then(function(){
           d.resolve();
@@ -139,6 +156,133 @@ angular.module('sdbaApp')
 
         return d.promise;
       },
+      //this has nothing to do with DB but im lazy to create another service
+      validateSchedule : function(event) {
+
+      var errors = [];
+
+      var order =
+      ["HEAT",
+        "RND",
+        "RND2",
+        "FLH",
+        "REPE",
+        "SEMI",
+        "PLFN",
+        "MNFN",
+        "GNFN"];
+
+
+      //is the schedule wonky?
+      var r = _.reduce(event.schedule, function(results, item, index) {
+
+        var thisValue = _.indexOf(order, item.round);
+
+        if(item.round === "PLFN" || item.round === "MNFN") {
+          thisValue = 8;
+        }
+
+        if (!results.hasOwnProperty(item.category)) {
+          results[item.category] = thisValue
+          return results;
+        } else if (results[item.category] <= thisValue) {
+          //the last round is a lower or equal round - OK
+          results[item.category] = thisValue;
+          return results;
+        } else {
+          //the last round is a greater round! im out of place!
+          if (results.hasOwnProperty("fail")) {
+            results.fail.push(item);
+            return results;
+          } else {
+            results.fail = [item];
+            return results;
+          }
+        }
+
+      },{});
+
+      console.log(r);
+
+      if (r.hasOwnProperty("fail")) {
+        _.forEach(r.fail, function(item) {
+          errors.push({
+            type: 500,
+            category: item.category,
+            round: item.round,
+            roundNo: item.roundNo
+          });
+        });
+      }
+
+
+      _.forEach(event.categories, function(category) {
+        _.forEach(category.progression, function(roundNo, round) {
+
+          var ignore = ["FLH", "max_teams"];
+          if (_.includes(ignore, round)) {
+            return;
+          }
+
+          var scheduledItems = _.sortBy(_.filter(event.schedule, {
+            'category': category.id,
+            'round': round
+          }), 'roundNo');
+
+          //are there missing items?
+          for (var i = 1; i <= roundNo; i++) {
+
+            var filtered = _.filter(scheduledItems, {
+              'roundNo': i
+            });
+
+            if (filtered.length === 0) {
+              //missing
+              errors.push({
+                type: 404,
+                category: category.id,
+                round: round,
+                roundNo: i
+              });
+            } else if (filtered.length > 1) {
+              //duplicates
+              errors.push({
+                type: 405,
+                category: category.id,
+                round: round,
+                roundNo: i
+              });
+            }
+
+          }
+
+          var checkExtra = function(c) {
+            if (scheduledItems[c].roundNo > roundNo) {
+              //extra
+              errors.push({
+                type: 403,
+                category: category.id,
+                round: round,
+                roundNo: scheduledItems[c].roundNo
+              });
+              checkExtra(c - 1);
+            } else {
+              return;
+            }
+          }
+
+          //are there extra items?
+          if (scheduledItems.length > roundNo) {
+            checkExtra(scheduledItems.length - 1);
+          }
+
+        });
+      });
+
+      return errors;
+
+    },
+
 
       db: $rootScope.db
 

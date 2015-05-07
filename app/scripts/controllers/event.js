@@ -12,9 +12,11 @@ angular.module('sdbaApp')
             DBService.db.get(e.activeRace)
               .then(function(r) {
                 $scope.$apply($scope.race = r);
-                if(DBService.newRoundReturn) {
+                if (DBService.newRoundReturn) {
+                  console.log("Came from generator");
+                  DBService.newRoundReturn = false;
                   continueRace();
-                } else{
+                } else {
                   presentRace();
                 }
               })
@@ -53,14 +55,9 @@ angular.module('sdbaApp')
       scheduleItem.catName = $scope.event.categories[$scope.race.category].name;
       DBService.getRaceTeams($scope.race)
         .then(function(teams) {
-          console.log(teams);
-          console.log($scope.race);
           var t = [];
           _.forEach(teams.rows, function(val, key) {
-            console.log(val.doc.categories);
-            console.log($scope.race.category);
             var cat = val.doc.categories[$scope.race.category];
-            console.log(cat);
             cat[$scope.race.round] = {
               lane: key + 1,
               time: 0
@@ -89,18 +86,25 @@ angular.module('sdbaApp')
         return item.round === $scope.race.round && item.roundNo === $scope.race.roundNo && item.category === $scope.race.category;
       });
 
-      if(i) {
-        currentIndex = i;
-      }
-
       if (currentIndex === $scope.event.schedule.length - 1) {
         //last event
-        $location.path("/");
+        console.log("is last event");
+        $scope.$apply($location.path("/event/view/" + $scope.event.eventID));
       } else {
+
+        var nextRace = {};
+
         DBService.getRace($scope.event.eventID, $scope.event.schedule[currentIndex + 1])
           .then(function(race) {
-            $scope.event.activeRace = race._id;
-            return DBService.db.put($scope.event);
+
+            nextRace = race;
+            //ensure we're updating the latest edition of the event!
+
+            return DBService.db.get($scope.event._id);
+          })
+          .then(function(event) {
+            event.activeRace = nextRace._id;
+            return DBService.db.put(event);
           })
           .then(function() {
             console.log("next race!");
@@ -110,7 +114,8 @@ angular.module('sdbaApp')
             console.log(err);
             if (err.status == 404) {
               //event doesnt exist in schedule
-              continueRace(currentIndex++);
+              console.log($scope.event.schedule[currentIndex + 1]);
+              console.log("Was Not Found!");
             }
           });
       }
@@ -131,20 +136,22 @@ angular.module('sdbaApp')
       _.forEach($scope.teams, function(team) {
         var cat = team.categories[$scope.race.category];
         cat[$scope.race.round].time = team["latestTiming_" + cat.id];
+        //in case this wasnt actually saved
+        cat[$scope.race.round].roundNo = $scope.race.roundNo;
       });
 
       console.log($scope.teams);
       console.log($scope.event);
 
       //set the race winner
-        var s = _.sortBy($scope.teams, 'latestTiming_' + $scope.race.category);
-        $scope.race.winner = s[0].teamID;
-        var winningTeam = _.find($scope.teams, {
-          'teamID': $scope.race.winner
-        });
-        var c = winningTeam.categories[$scope.race.category];
+      var s = _.sortBy($scope.teams, 'latestTiming_' + $scope.race.category);
+      $scope.race.winner = s[0].teamID;
+      var winningTeam = _.find($scope.teams, {
+        'teamID': $scope.race.winner
+      });
+      var c = winningTeam.categories[$scope.race.category];
 
-        c[$scope.race.round].winner = true;
+      c[$scope.race.round].winner = true;
 
       console.log("winner is");
       console.log($scope.race);
@@ -182,6 +189,8 @@ angular.module('sdbaApp')
       //here lies node.
       if (!window.require) {
         //prevent browser crashes for testing
+        $scope.waitOutput = true;
+
         return;
       }
       var fs = require('fs');
@@ -215,7 +224,11 @@ angular.module('sdbaApp')
       var simulate = $('#simulate');
       simulate.click(function(e) {
         console.log("simulating RESULTS!");
-        watcher.close();
+        if (window.require) {
+          //prevent browser crashes for testing
+          watcher.close();
+        }
+
         _.forEach($scope.teams, function(team) {
           var cat = team.categories[$scope.race.category];
           team['latestTiming_' + cat.id] = Math.random() * 100.100;

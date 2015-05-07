@@ -32,6 +32,8 @@ module.exports = function(config) {
       'app/bower_components/pouchdb/dist/pouchdb.js',
       'app/bower_components/angular-bootstrap/ui-bootstrap-tpls.js',
       'app/bower_components/pouchdb-find/dist/pouchdb.find.min.js',
+      'app/bower_components/jquery-ui/jquery-ui.js',
+      'app/bower_components/angular-ui-sortable/sortable.js',
       'app/bower_components/angular-mocks/angular-mocks.js',
       // endbower
       'app/scripts/**/*.js',

@@ -1,15 +1,22 @@
 <div class="container content-wrap clearfix event-settings">
-  <h2>Settings for {{eventSettings.name}}</h2>
+  <h2>{{eventSettings.name}}</h2>
+  <div class="jumbotron" style="margin-bottom: 30px !important;">
+    <div class="btn-group">
+      <a type="button" class="btn btn-default btn-lg" href="#/event" ng-disabled="eventSettings.scheduleErrors.length || !prior">Race Mode</a>
+      <a type="button" class="btn btn-default btn-lg" href="#/event">Event Management</a>
+      <a type="button" class="btn btn-default btn-lg" href="#/event/view/{{eventSettings.eventID}}" target="_blank">Event Results</a>
+    </div>
+  </div>
   <div class="alert alert-warning">
-    <p>The below settings should only be set BEFORE the event has commenced. Changing race settings while the event is underway may affect the integrity of race data.</p>
+    <p>The below settings should only be set BEFORE the event commences. Changing race settings while the event is underway may affect the integrity of race data.</p>
   </div>
   <div class="panel panel-default">
     <div class="panel-heading">
-      <h3 class="panel-title">Generate Heats Lineup</h3>
+      <h3 class="panel-title">General Settings</h3>
     </div>
     <div class="panel-body">
       <div class="alert alert-danger" ng-show="prior"><b>We have found previously generated races!</b> Generating again WILL override the race line up and data for the first rounds of the event!</div>
-      <div class="alert alert-warning" ng-show="eventSettings.scheduleErrors.length">
+      <div class="alert alert-danger" ng-show="eventSettings.scheduleErrors.length">
         <b>We have found errors in the event schedule!</b>
         <ul>
           <li ng-repeat="error in eventSettings.scheduleErrors">
@@ -17,11 +24,12 @@
             <span ng-if="error.type === 403">should not exist.</span>
             <span ng-if="error.type === 404">is missing.</span>
             <span ng-if="error.type === 405">has duplicates.</span>
+            <span ng-if="error.type === 500">seems to be out of place.</span>
           </li>
         </ul>
       </div>
       <button type="button" class="btn btn-default" ng-click="generateHeats()">Generate Heats</button>
-      <a type="button" class="btn btn-default" href="#/event" ng-disabled="eventSettings.scheduleErrors.length">Go To Event</a>
+      <a class="btn btn-default" href="#/event/schedule">View/Edit Schedule</a>
       <p ng-show="heatsGenerated"><i>Heats Generated!</i></p>
     </div>
   </div>
@@ -70,7 +78,7 @@
         <input type="text" class="form-control" ng-model="confirmDeleteString"></input>
         <span class="input-group-btn">
                         <button type="button" class="btn btn-danger" ng-click="deleteEvent()" ng-disabled="eventSettings.eventID != confirmDeleteString">Delete Event</button>
-                    </span>
+        </span>
       </div>
     </div>
   </div>

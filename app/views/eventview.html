@@ -1,19 +1,19 @@
 <div class="container content-wrap clearfix event-view">
-  <h3>Event Results</h3>
+  <h2>Event Results</h2>
   <div class="panel panel-default" ng-repeat="category in event.categories">
     <div class="panel-heading">
       <h3 class="panel-title">{{category.name}}</h3>
     </div>
     <div class="panel-body">
-      <div class="panel panel-default" ng-repeat="(roundID,round) in category.rounds | orderBy: roundOrder(roundID)">
+      <div class="panel panel-default" ng-repeat="round in category.rounds | orderByRounds">
         <div class="panel-body">
-          <h3 style="margin-top: 0">{{roundID}}</h3>
+          <h3 style="margin-top: 0">{{round.round}}</h3>
           <div class="races">
             <div ng-repeat="race in round" class="col-md-6 col-lg-4 race-item">
               <table class="table table-bordered">
                 <thead>
                   <tr>
-                    <th colspan="2" class="active">{{roundID}} {{race.roundNo}}</th>
+                    <th colspan="2" class="active">{{round.round}} {{race.roundNo}}</th>
                   </tr>
                   <tr>
                     <th class="col-sm-1">Lane</th>

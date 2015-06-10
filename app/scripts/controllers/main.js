@@ -13,6 +13,7 @@
 angular.module('sdbaApp')
   .controller('MainCtrl', function ($scope,$rootScope,DBService,$location) {
     $scope.events = [];
+    $rootScope.notCenter = false;
 
     $scope.getAllEvents = function() {
       DBService.getAllEvents()

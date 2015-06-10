@@ -178,8 +178,9 @@ module.exports = function (grunt) {
     // Run my NW stuff
     nodewebkit: {
       options: {
-        platforms: ['osx','win32'],
-        buildDir: './builds'
+        platforms: ['osx','win32','win64'],
+        buildDir: './builds',
+        version: 'v0.12.1'
       },
       src: ['./app/**/*']
     },

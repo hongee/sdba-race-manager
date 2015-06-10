@@ -1,0 +1,101 @@
+<div class="container content-wrap clearfix event-settings">
+  <h2>Event Manager
+  <span>
+  <div class="btn-group pull-right">
+    <a type="button" class="btn btn-default" href="#/event/schedule">Schedule</a></span>
+    <a type="button" class="btn btn-default" href="#/event/settings"><span class="glyphicon glyphicon-cog"></span></a></span>
+    <a type="button" class="btn btn-default" ng-click="reload()"><span class="glyphicon glyphicon-refresh"></span></a></span>
+  </div>
+  </span>
+  </h2>
+  <!-- not gonna do autorefresh cos its annoying -->
+  <tabset class="tab-animation">
+    <tab ng-repeat="category in event.categories track by category.id" heading="{{category.id}}" active="tab" ng-init="tab = isActiveEvent(category.id)">
+      <accordion>
+        <accordion-group ng-repeat="round in category.rounds | orderByRounds track by round.round" heading="{{round.round}}" ng-init="acc = isActiveEvent(round.round)" is-open="acc">
+          <a type="button" class="btn btn-default" style="margin-bottom:15px" ng-hide="category[round.round + '_generated'] || !allConfirmed(round)" href="#/event/nextround/{{round[0]._id}}">Progress Race (Preview)</a>
+          <div class="races">
+            <div ng-repeat="race in round track by race._id" class="col-md-6 race-item">
+              <div ng-show="race._id === event.activeRace && !race.completed" class="race-overlay">
+                <div class="screen">
+                  <h2>Race In Progress</h2>
+                </div>
+              </div>
+              <table class="table table-bordered">
+                <thead>
+                  <tr>
+                    <th colspan="2" class="active">
+                      {{race.timeTrial ? "TIMETRIAL" : round.round}} {{race.roundNo}}
+                      <span ng-show="!race.confirmed && race.completed"><small>Unchecked</small></span>
+                      <div style="width:75px;" class="pull-right">
+                        <div class="input-group">
+                          <input type="text" class="form-control input-xs" ng-model="race.raceID">
+                          <span class="input-group-btn">
+                          <button class="btn btn-default btn-xs" type="button" ng-click="addComments(race)"><span class="glyphicon glyphicon-comment"></span></button>
+                          <button class="btn btn-default btn-xs" type="button" ng-click="printRace(race,category.name)"><span class="glyphicon glyphicon-print"></span></button>
+                          </span>
+                        </div>
+                      </div>
+                    </th>
+                  </tr>
+                  <tr>
+                    <th class="col-sm-1">Lane</th>
+                    <th>Name</th>
+                    <th class="col-sm-2">Timing</th>
+                    <th ng-hide="race.confirmed">Options</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr ng-repeat="(key,team) in race.teams track by team._id" ng-class="{danger: team.categories[race.category].disqualified}">
+                    <td ng-show="race.completed">{{team.categories[race.category][race.round].lane}}</td>
+                    <td ng-hide="race.completed">{{getLane(team,race)}}
+                    </td>
+                    <td>{{team.name}} <span ng-show="team.categories[race.category].disqualified"><small><b>{{team.categories[race.category].dns ? "DNS" : "DISQUALIFIED"}}</b></small></span> <span ng-show="team.categories[race.category][race.round].penalty" style="color:red;"><small><b>PENALIZED</b></small></span>
+                    </td>
+                    <td ng-show="race.confirmed">{{race.timeTrial ? team["latestTiming_" + race.category] : team.categories[race.category][race.round].time | number}}</td>
+                    <td ng-show="race.completed && !race.confirmed && !team.edit">{{team["latestTiming_" + race.category] | number}}
+                    </td>
+                    <td ng-show="team.edit">
+                      <input class="form-control" type="text" ng-model="team.edit.time" ng-show="team.edit">
+                    </td>
+                    <td ng-hide="race.completed">TBC</td>
+                    <td ng-hide="race.confirmed">
+                      <div class="btn-group" dropdown ng-show="race.completed && !race.confirmed">
+                        <button type="button" class="btn btn-default btn-sm dropdown-toggle" dropdown-toggle ng-hide="team.categories[race.category].disqualified || team.edit">
+                          <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu" role="menu">
+                          <li><a ng-click="penalizeTime(team,race)">Time Penalty</a></li>
+                          <li><a ng-click="enableEdit(team, race)">Edit Time</a></li>
+                          <li class="divider"></li>
+                          <li><a ng-click="timetrialTeam(team,race,event,round)">Time Trial</a></li>
+                          <li><a ng-click="disqualifyTeam(team,race)">Disqualify</a></li>
+                          <li><a ng-click="disqualifyTeam(team,race, true)">DNS</a></li>
+                          <li><a ng-click="withdrawTeam(team,race)">Withdraw</a></li>
+                        </ul>
+                      </div>
+                      <button type="button" class="btn btn-default btn-sm" ng-click="saveEdits(team, race)" ng-show="team.edit">
+                        <span class="glyphicon glyphicon-save"></span>
+                      </button>
+                      <button type="button" class="btn btn-danger btn-sm" ng-click="withdrawTeam(team,race)" ng-hide="race.completed">Withdraw</button>
+                    </td>
+                  </tr>
+                  <tr ng-show="race.withdrawn">
+                    <td colspan="4"><span ng-repeat="team in race.withdrawn">{{team.laneKey}} </span> has withdrawn.</td>
+                  </tr>
+                  <tr>
+                    <td ng-show="race.completed && !category[race.round + '_generated']" colspan="4">
+                      <button type="button" class="btn btn-default btn-success btn-sm" ng-click="confirmRace(race)" ng-disabled="!isTTComplete(race.timeTrialTeams)" ng-hide="race.confirmed">Check</button>
+                      <button type="button" class="btn btn-default btn-warning btn-sm" ng-click="unconfirmRace(race)" ng-disabled="!isTTComplete(race.timeTrialTeams)" ng-show="race.confirmed">Uncheck</button>
+                      <p ng-show="!isTTComplete(race.timeTrialTeams)"><small><i>This race cannot be checked until the associated timetrials are complete!</i></small></p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </accordion-group>
+      </accordion>
+    </tab>
+  </tabset>
+</div>

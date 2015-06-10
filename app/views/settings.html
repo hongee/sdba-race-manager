@@ -10,10 +10,13 @@
         <div class="panel-body">
             <p>Current Input Directory: <code>{{appSettings.inputd}}</code></p>
             <p>Current Output Directory: <code>{{appSettings.outputd}}</code></p>
+            <p>Current PDF Output Directory: <code>{{appSettings.pdfoutputd}}</code></p>
             <button type="button" class="btn btn-default" ng-click="selectdir('input')">Select Input Directory</button>
             <button type="button" class="btn btn-default" ng-click="selectdir('output')">Select Output Directory</button>
+            <button type="button" class="btn btn-default" ng-click="selectdir('pdfoutput')">Select PDF Output Directory</button>
             <input style="display:none;" id="inputDir" type="file" nwdirectory/>
             <input style="display:none;" id="outputDir" type="file" nwdirectory/>
+            <input style="display:none;" id="pdfoutputDir" type="file" nwdirectory/>
         </div>
     </div>
     <div class="panel panel-default">

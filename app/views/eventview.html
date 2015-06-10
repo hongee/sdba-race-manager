@@ -1,5 +1,9 @@
 <div class="container content-wrap clearfix event-view">
-  <h2>Event Results</h2>
+  <h2>Event Results
+    <a type="btn btn-default btn-link" ng-click="print()">
+          <span class="glyphicon glyphicon-print" style="font-size:18px;"></span>
+    </a>
+  </h2>
   <div class="panel panel-default" ng-repeat="category in event.categories">
     <div class="panel-heading">
       <h3 class="panel-title">{{category.name}}</h3>
@@ -9,24 +13,27 @@
         <div class="panel-body">
           <h3 style="margin-top: 0">{{round.round}}</h3>
           <div class="races">
-            <div ng-repeat="race in round" class="col-md-6 col-lg-4 race-item">
+            <div ng-repeat="race in round" class="col-xs-6 col-md-6 col-lg-4 race-item">
               <table class="table table-bordered">
                 <thead>
                   <tr>
                     <th colspan="2" class="active">{{round.round}} {{race.roundNo}}</th>
                   </tr>
                   <tr>
-                    <th class="col-sm-1">Lane</th>
+                    <th class="col-xs-1">Lane</th>
                     <th>Name</th>
-                    <th class="col-sm-2">Timing</th>
+                    <th class="col-xs-2">Time</th>
+                    <th class="col-xs-1" ng-show="race.completed && team.categories[race.category][race.round].time">Pos.</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr ng-repeat="(key,team) in race.teams" ng-class="{active: team.teamID === race.winner}">
-                    <td>{{key + 1}}</td>
+                    <td ng-show="race.completed">{{team.categories[race.category][race.round].lane}}</td>
+                    <td ng-hide="race.completed">{{getLane(team,race)}}</td>
                     <td>{{team.name}}</td>
-                    <td ng-show="race.completed">{{team.categories[race.category][race.round].time | number}}</td>
-                    <td ng-hide="race.completed">TBC</td>
+                    <td ng-show="race.completed && team.categories[race.category][race.round].time">{{team.categories[race.category][race.round].time | number}}</td>
+                    <td ng-hide="race.completed && team.categories[race.category][race.round].time">TBC</td>
+                    <td class="col-xs-1" ng-show="race.completed && team.categories[race.category][race.round].time">{{team.pos}}</td>
                   </tr>
                 </tbody>
               </table>

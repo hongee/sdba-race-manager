@@ -3,14 +3,22 @@
   "main": "index.html",
   "version": "0.0.1",
   "window": {
+    "title": "SDBA Race Assistant",
     "width": 1000,
     "height": 700,
-    "frame":true,
-    "toolbar":true
+    "frame": true,
+    "toolbar": false
+  },
+  "platformOverrides": {
+    "osx": {
+      "window": {
+        "toolbar": true
+      }
+    }
   },
   "dependencies": {
+    "chokidar": "^1.0.1",
     "csv-parse": "^0.1.1",
     "xlsx": "^0.8.0"
   }
-
 }

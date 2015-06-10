@@ -34,6 +34,9 @@ module.exports = function(config) {
       'app/bower_components/pouchdb-find/dist/pouchdb.find.min.js',
       'app/bower_components/jquery-ui/jquery-ui.js',
       'app/bower_components/angular-ui-sortable/sortable.js',
+      'app/bower_components/jspdf/dist/jspdf.min.js',
+      'app/bower_components/blob-util/dist/blob-util.js',
+      'app/bower_components/jspdf-autotable/jspdf.plugin.autotable.js',
       'app/bower_components/angular-mocks/angular-mocks.js',
       // endbower
       'app/scripts/**/*.js',

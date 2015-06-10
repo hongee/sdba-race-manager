@@ -1,0 +1,52 @@
+<div class="container content-wrap clearfix event-settings">
+  <h2>Race Draw
+  <span>
+      <a class="btn btn-default" href="#/print/rngall/{{event.eventID}}" target="_blank"><span class="glyphicon glyphicon-print"></span></a>
+  </span>
+  </h2>
+  <!-- not gonna do autorefresh cos its annoying -->
+  <tabset class="tab-animation">
+    <tab ng-repeat="category in event.categories track by category.id" heading="{{category.name}}">
+      <button type="button" style="margin-top: 15px; margin-bottom: 15px;" class="btn btn-default btn-lg" ng-click="generateHeats(category)" ng-hide="category.generated">Generate First Round</button>
+      <button type="button" style="margin-top: 15px; margin-bottom: 15px;" class="btn btn-default btn-lg" ng-click="confirm(category)" ng-show="category.generated && !category.done">Confirm Team Lineup</button>
+      <button type="button" style="margin-top: 15px; margin-bottom: 15px;" class="btn btn-default btn-lg" ng-click="reset(category)" ng-show="category.generated && !category.done">Redraw</button>
+      <h3 ng-show="category.done">First Round Line Up Successfully Generated</h3>
+      <div class="panel panel-default" ng-show="!category.generated">
+        <div class="races rng">
+          <div class="col-sm-4 race-item" ng-repeat="team in category.teams | orderBy:'-rng' track by team._id">
+            <table class="table table-hover table-bordered table-condensed">
+              <tbody>
+                <tr>
+                  <td>{{team.name}}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="panel panel-default" ng-show="category.generated">
+        <div class="races rng">
+          <div ng-repeat="race in category.firstRoundPresent" class="col-md-4 race-item">
+            <table class="table table-bordered table-condensed">
+              <thead>
+                <tr>
+                  <th colspan="2" class="active">{{race.round}} {{race.roundNo}}</th>
+                </tr>
+                <tr>
+                  <th class="col-sm-1">Lane</th>
+                  <th>Name</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr ng-repeat="(key,team) in race.teams">
+                  <td>{{getLane(team,race)}}</td>
+                  <td>{{team.name}}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </tab>
+  </tabset>
+</div>

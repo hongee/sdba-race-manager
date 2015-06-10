@@ -2,9 +2,10 @@
   <h2>{{eventSettings.name}}</h2>
   <div class="jumbotron" style="margin-bottom: 30px !important;">
     <div class="btn-group">
-      <a type="button" class="btn btn-default btn-lg" href="#/event" ng-disabled="eventSettings.scheduleErrors.length || !prior">Race Mode</a>
-      <a type="button" class="btn btn-default btn-lg" href="#/event">Event Management</a>
-      <a type="button" class="btn btn-default btn-lg" href="#/event/view/{{eventSettings.eventID}}" target="_blank">Event Results</a>
+      <a type="button" class="btn btn-default btn-lg" href="#/event" ng-disabled="eventSettings.scheduleErrors.length || !prior">Race</a>
+      <a type="button" class="btn btn-default btn-lg" href="#/event/manager/{{eventSettings.eventID}}">Management</a>
+      <a type="button" class="btn btn-default btn-lg" href="#/event/view/{{eventSettings.eventID}}" ng-disabled="!prior" target="_blank">Results</a>
+      <a type="button" class="btn btn-default btn-lg" href="#/event/generate" ng-disabled="prior">Generate</a>
     </div>
   </div>
   <div class="alert alert-warning">
@@ -15,7 +16,7 @@
       <h3 class="panel-title">General Settings</h3>
     </div>
     <div class="panel-body">
-      <div class="alert alert-danger" ng-show="prior"><b>We have found previously generated races!</b> Generating again WILL override the race line up and data for the first rounds of the event!</div>
+      <div class="alert alert-danger" ng-show="prior"><b>We have found previously generated races!</b> Generating the first round again will override the race line up and data for the first rounds of the event!</div>
       <div class="alert alert-danger" ng-show="eventSettings.scheduleErrors.length">
         <b>We have found errors in the event schedule!</b>
         <ul>
@@ -28,58 +29,98 @@
           </li>
         </ul>
       </div>
-      <button type="button" class="btn btn-default" ng-click="generateHeats()">Generate Heats</button>
+      <a class="btn btn-default" href="#/event/generate">Generate First Round</a>
       <a class="btn btn-default" href="#/event/schedule">View/Edit Schedule</a>
-      <p ng-show="heatsGenerated"><i>Heats Generated!</i></p>
-    </div>
-  </div>
-  <div class="panel panel-default">
-    <div class="panel-heading">
-      <h3 class="panel-title">Race Structure</h3>
-    </div>
-    <table class="table table-bordered table-condensed">
-      <thead>
-        <tr>
-          <th>Cat.</th>
-          <th>Teams</th>
-          <th>RND</th>
-          <th>HEAT</th>
-          <th>FL(H)</th>
-          <th>REPE</th>
-          <th>SEMI</th>
-          <th>PLATE</th>
-          <th>MNFN</th>
-          <th>GNFN</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr ng-repeat="category in eventSettings.categories">
-          <td><code>{{category.id}}</code></td>
-          <td>{{category.totalTeams}}</td>
-          <td>{{category.progression.RND}}</td>
-          <td>{{category.progression.HEAT}}</td>
-          <td>{{category.progression.FLH}}</td>
-          <td>{{category.progression.REPE}}</td>
-          <td>{{category.progression.SEMI}}</td>
-          <td>{{category.progression.PLFN}}</td>
-          <td>{{category.progression.MNFN}}</td>
-          <td>{{category.progression.GNFN}}</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-  <div class="panel panel-default">
-    <div class="panel-heading">
-      <h3 class="panel-title">Administrative</h3>
-    </div>
-    <div class="panel-body">
-      <p>Type <code>{{eventSettings.eventID}}</code> to delete the event. This cannot be undone!</p>
+      <a class="btn btn-default" ng-click="toggleDev()">{{eventSettings.devMode ? "Disable" : "Enable"}} Developer Mode</a>
+      <span class="col-sm-3">
       <div class="input-group">
-        <input type="text" class="form-control" ng-model="confirmDeleteString"></input>
+        <input type="text" class="form-control" ng-model="setRaceField">
         <span class="input-group-btn">
-                        <button type="button" class="btn btn-danger" ng-click="deleteEvent()" ng-disabled="eventSettings.eventID != confirmDeleteString">Delete Event</button>
+          <button class="btn btn-default" type="button" ng-click="setActiveRace()">Set Active Event</button>
         </span>
+    </div>
+    </span>
+  </div>
+</div>
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <a class="pull-right" ng-click="saveEventTemplateSettings()"><span class="glyphicon glyphicon-save"></span></a>
+    <span style="margin-right: 10px; color:green;" class="pull-right" ng-show="eventTemplateUpdated"><span class="glyphicon glyphicon-ok"></span></span>
+    <h3 class="panel-title">Event Template</h3>
+  </div>
+  <div class="panel-body">
+    <div class="row">
+      <div class="col-xs-6">
+        <div class="input-group">
+          <span class="input-group-addon">Chief Judge</span>
+          <input type="text" class="form-control" ng-model="eventSettings.chiefJudge">
+        </div>
+      </div>
+      <div class="col-xs-6">
+        <div class="input-group">
+          <span class="input-group-addon">Chief Official</span>
+          <input type="text" class="form-control" ng-model="eventSettings.chiefOfficial">
+        </div>
       </div>
     </div>
+    <br>
+    <div class="alert alert-warning">
+      <p>The dimensions of the uploaded image should not exceed 3508 × 647 (aka the top 5cm of a landscape A4 page).</p>
+    </div>
+    <img class="img-responsive center-block" id="previewImg">
+    <a class="btn btn-default" ng-click="uploadEventTemplate()">Upload Event Header</a>
+    <input style="display:none;" id="eTemplateSelector" type="file" accept=".jpg,.jpeg" />
   </div>
+</div>
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">Race Structure</h3>
+  </div>
+  <table class="table table-bordered table-condensed">
+    <thead>
+      <tr>
+        <th>Cat.</th>
+        <th>Teams</th>
+        <th>RND</th>
+        <th>RND2</th>
+        <th>HEAT</th>
+        <th>FL(H)</th>
+        <th>REPE</th>
+        <th>SEMI</th>
+        <th>PLFN</th>
+        <th>MNFN</th>
+        <th>GNFN</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="category in eventSettings.categories">
+        <td><code>{{category.id}}</code></td>
+        <td>{{category.totalTeams}}</td>
+        <td>{{category.progression.RND}} <a ng-click="cancelRound(category.id,'RND')" ng-show="category.progression.RND" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-remove"></span></a></td>
+        <td>{{category.progression.RND2}} <a ng-click="cancelRound(category.id,'RND2')" ng-show="category.progression.RND2" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-remove"></span></a></td>
+        <td>{{category.progression.HEAT}}</td>
+        <td>{{category.progression.FLH}}</td>
+        <td>{{category.progression.REPE}} <a ng-click="cancelRound(category.id,'REPE')" ng-show="category.progression.REPE" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-remove"></span></a></td>
+        <td>{{category.progression.SEMI}} <a ng-click="cancelRound(category.id,'SEMI')" ng-show="category.progression.SEMI" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-remove"></span></a></td>
+        <td>{{category.progression.PLFN}} <a ng-click="cancelRound(category.id,'PLFN')" ng-show="category.progression.PLFN" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-remove"></span></a></td>
+        <td>{{category.progression.MNFN}} <a ng-click="cancelRound(category.id,'MNFN')" ng-show="category.progression.MNFN" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-remove"></span></a></td>
+        <td>{{category.progression.GNFN}} <a ng-click="cancelRound(category.id,'GNFN')" ng-show="category.progression.GNFN" class="btn btn-default btn-xs"><span class="glyphicon glyphicon-remove"></span></a></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">Administrative</h3>
+  </div>
+  <div class="panel-body">
+    <p>Type <code>{{eventSettings.eventID}}</code> to delete the event. This cannot be undone!</p>
+    <div class="input-group">
+      <input type="text" class="form-control" ng-model="confirmDeleteString"></input>
+      <span class="input-group-btn">
+                        <button type="button" class="btn btn-danger" ng-click="deleteEvent()" ng-disabled="eventSettings.eventID != confirmDeleteString">Delete Event</button>
+        </span>
+    </div>
+  </div>
+</div>
 </div>

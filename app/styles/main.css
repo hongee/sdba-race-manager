@@ -261,113 +261,110 @@ th {
 }
 
 /*! Source: https://github.com/h5bp/html5-boilerplate/blob/master/src/css/main.css */
+/*
+
 @media print {
-  /* line 9, ../bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/_print.scss */
-  *,
-  *:before,
-  *:after {
-    background: transparent !important;
-    color: #000 !important;
-    box-shadow: none !important;
-    text-shadow: none !important;
-  }
+    *,
+    *:before,
+    *:after {
+        background: transparent !important;
+        color: #000 !important; // Black prints faster: h5bp.com/s
+        box-shadow: none !important;
+        text-shadow: none !important;
+    }
 
-  /* line 18, ../bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/_print.scss */
-  a,
-  a:visited {
-    text-decoration: underline;
-  }
+    a,
+    a:visited {
+        text-decoration: underline;
+    }
 
-  /* line 23, ../bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/_print.scss */
-  a[href]:after {
-    content: " (" attr(href) ")";
-  }
+    a[href]:after {
+        content: " (" attr(href) ")";
+    }
 
-  /* line 27, ../bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/_print.scss */
-  abbr[title]:after {
-    content: " (" attr(title) ")";
-  }
+    abbr[title]:after {
+        content: " (" attr(title) ")";
+    }
 
-  /* line 33, ../bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/_print.scss */
-  a[href^="#"]:after,
-  a[href^="javascript:"]:after {
-    content: "";
-  }
+    // Don't show links that are fragment identifiers,
+    // or use the `javascript:` pseudo protocol
+    a[href^="#"]:after,
+    a[href^="javascript:"]:after {
+        content: "";
+    }
 
-  /* line 38, ../bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/_print.scss */
-  pre,
-  blockquote {
-    border: 1px solid #999;
-    page-break-inside: avoid;
-  }
+    pre,
+    blockquote {
+        border: 1px solid #999;
+        page-break-inside: avoid;
+    }
 
-  /* line 44, ../bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/_print.scss */
-  thead {
-    display: table-header-group;
-  }
+    thead {
+        display: table-header-group; // h5bp.com/t
+    }
 
-  /* line 48, ../bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/_print.scss */
-  tr,
-  img {
-    page-break-inside: avoid;
-  }
+    tr,
+    img {
+        page-break-inside: avoid;
+    }
 
-  /* line 53, ../bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/_print.scss */
-  img {
-    max-width: 100% !important;
-  }
+    img {
+        max-width: 100% !important;
+    }
 
-  /* line 57, ../bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/_print.scss */
-  p,
-  h2,
-  h3 {
-    orphans: 3;
-    widows: 3;
-  }
+    p,
+    h2,
+    h3 {
+        orphans: 3;
+        widows: 3;
+    }
 
-  /* line 64, ../bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/_print.scss */
-  h2,
-  h3 {
-    page-break-after: avoid;
-  }
+    h2,
+    h3 {
+        page-break-after: avoid;
+    }
 
-  /* line 73, ../bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/_print.scss */
-  select {
-    background: #fff !important;
-  }
+    // Bootstrap specific changes start
+    //
+    // Chrome (OSX) fix for https://github.com/twbs/bootstrap/issues/11245
+    // Once fixed, we can just straight up remove this.
+    select {
+        background: #fff !important;
+    }
 
-  /* line 78, ../bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/_print.scss */
-  .navbar {
-    display: none;
-  }
+    // Bootstrap components
+    .navbar {
+        display: none;
+    }
+    .btn,
+    .dropup > .btn {
+        > .caret {
+            border-top-color: #000 !important;
+        }
+    }
+    .label {
+        border: 1px solid #000;
+    }
 
-  /* line 83, ../bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/_print.scss */
-  .btn > .caret,
-  .dropup > .btn > .caret {
-    border-top-color: #000 !important;
-  }
+    .table {
+        border-collapse: collapse !important;
 
-  /* line 87, ../bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/_print.scss */
-  .label {
-    border: 1px solid #000;
-  }
+        td,
+        th {
+            background-color: #fff !important;
+        }
+    }
+    .table-bordered {
+        th,
+        td {
+            border: 1px solid #ddd !important;
+        }
+    }
 
-  /* line 91, ../bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/_print.scss */
-  .table {
-    border-collapse: collapse !important;
-  }
-  /* line 94, ../bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/_print.scss */
-  .table td,
-  .table th {
-    background-color: #fff !important;
-  }
-
-  /* line 100, ../bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap/_print.scss */
-  .table-bordered th,
-  .table-bordered td {
-    border: 1px solid #ddd !important;
-  }
+    // Bootstrap specific changes end
 }
+
+*/
 @font-face {
   font-family: 'Glyphicons Halflings';
   src: url("../bower_components/bootstrap-sass-official/assets/fonts/bootstrap/glyphicons-halflings-regular.eot");
@@ -8701,17 +8698,43 @@ body {
 
 /* line 123, main.scss */
 .content-wrapper {
-  max-height: 82.5%;
+  max-height: 85%;
+}
+
+/* line 127, main.scss */
+.fix-height {
+  max-height: 500px;
+  overflow-y: scroll;
+}
+
+/* line 132, main.scss */
+.notCenter {
+  align-self: flex-start;
+  margin-top: 70px;
   overflow-y: auto;
   overflow-x: hidden;
 }
 
-/* line 129, main.scss */
+/* line 139, main.scss */
 .event-settings {
   padding-right: 43px;
 }
 
-/* line 133, main.scss */
+/* line 143, main.scss */
+.rng {
+  padding: 15px;
+}
+/* line 145, main.scss */
+.rng .race-item {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+/* line 148, main.scss */
+.rng .race-item .table {
+  margin-bottom: 10px;
+}
+
+/* line 154, main.scss */
 .races {
   display: flex;
   flex-wrap: wrap;
@@ -8719,25 +8742,60 @@ body {
   margin-right: -15px;
 }
 
-/* line 140, main.scss */
+/* line 161, main.scss */
 .race-item {
   display: flex;
 }
 
-/* line 144, main.scss */
+/* line 165, main.scss */
 .event-view {
   width: auto !important;
   max-width: none !important;
 }
 
-/* line 149, main.scss */
+/* line 170, main.scss */
 .un-jumbo {
   font-size: initial !important;
   padding: 6px 12px !important;
 }
 
+/* line 175, main.scss */
+.race-overlay {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* line 184, main.scss */
+.screen {
+  background-color: rgba(0, 0, 0, 0.6);
+  width: 50%;
+  height: 50%;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+/* line 193, main.scss */
+.screen * {
+  color: white;
+}
+
+/* line 198, main.scss */
+.input-xs {
+  height: 22px;
+  padding: 5px 5px;
+  font-size: 12px;
+  line-height: 1.5;
+  border-radius: 3px;
+}
+
 /* Everything but the jumbotron gets side spacing for mobile first views */
-/* line 155, main.scss */
+/* line 208, main.scss */
 .header,
 .marketing,
 .footer {
@@ -8746,13 +8804,13 @@ body {
 }
 
 /* Custom page header */
-/* line 163, main.scss */
+/* line 216, main.scss */
 .header {
   border-bottom: 1px solid #e5e5e5;
   margin-bottom: 10px;
   /* Make the masthead heading the same height as the navigation */
 }
-/* line 168, main.scss */
+/* line 221, main.scss */
 .header h3 {
   margin-top: 0;
   margin-bottom: 0;
@@ -8761,49 +8819,49 @@ body {
 }
 
 /* Custom page footer */
-/* line 177, main.scss */
+/* line 230, main.scss */
 .footer {
   padding-top: 19px;
   color: #777;
   border-top: 1px solid #e5e5e5;
 }
 
-/* line 183, main.scss */
+/* line 236, main.scss */
 .container-narrow > hr {
   margin: 30px 0;
 }
 
 /* Main marketing message and sign up button */
-/* line 188, main.scss */
+/* line 241, main.scss */
 .jumbotron {
   text-align: center;
   border-bottom: 1px solid #e5e5e5;
 }
-/* line 191, main.scss */
+/* line 244, main.scss */
 .jumbotron .btn {
   font-size: 21px;
   padding: 14px 24px;
 }
 
 /* Supporting marketing content */
-/* line 198, main.scss */
+/* line 251, main.scss */
 .marketing {
   margin: 40px 0;
 }
-/* line 200, main.scss */
+/* line 253, main.scss */
 .marketing p + h4 {
   margin-top: 28px;
 }
 
 /* Responsive: Portrait tablets and up */
 @media screen and (min-width: 768px) {
-  /* line 207, main.scss */
+  /* line 260, main.scss */
   .container {
     max-width: 730px;
   }
 
   /* Remove the padding we set earlier */
-  /* line 212, main.scss */
+  /* line 265, main.scss */
   .header,
   .marketing,
   .footer {
@@ -8812,16 +8870,76 @@ body {
   }
 
   /* Space out the masthead */
-  /* line 220, main.scss */
+  /* line 273, main.scss */
   .header {
     margin-bottom: 30px;
   }
 
   /* Remove the bottom border on the jumbotron for visual effect */
-  /* line 225, main.scss */
+  /* line 278, main.scss */
   .jumbotron {
     border-bottom: 0;
   }
+}
+/* animations stuff */
+/* line 284, main.scss */
+.spin {
+  -webkit-animation-name: spin;
+  -webkit-animation-duration: 1s;
+  -webkit-animation-iteration-count: infinite;
+  -webkit-animation-timing-function: ease-in-out;
+}
+
+@-webkit-keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* thanks http://stackoverflow.com/questions/19503321/fade-effect-for-tabs-in-ui-bootstrap-angular-js */
+/* set reference point */
+/* line 302, main.scss */
+.tab-animation > .tab-content {
+  position: relative;
+}
+
+/* set animate effect */
+/* line 307, main.scss */
+.tab-animation > .tab-content > .tab-pane {
+  transition: 0.2s linear opacity;
+}
+
+/* overwrite display: none and remove from document flow */
+/* line 312, main.scss */
+.tab-animation > .tab-content > .tab-pane.active-remove {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  display: block;
+}
+
+/* opacity=0 when removing "active" class */
+/* line 320, main.scss */
+.tab-animation > .tab-content > .tab-pane.active-remove-active {
+  opacity: 0;
+}
+
+/* opacity=0 when adding "active" class */
+/* line 325, main.scss */
+.tab-animation > .tab-content > .tab-pane.active-add {
+  opacity: 0;
+}
+
+/* Print Stuff */
+/* line 330, main.scss */
+.pbreak {
+  page-break-after: always;
+}
+
+@page {
+  size: A4;
 }
 
 /*# sourceMappingURL=main.css.map */

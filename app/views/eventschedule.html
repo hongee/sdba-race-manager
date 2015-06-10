@@ -4,23 +4,29 @@
     <p><i>Drag and drop to rearrange event items</i></p>
   </div>
   <div class="col-sm-6">
-    <div class="panel">
-      <table class="table table-bordered table-striped table-hover table-condensed">
+    <div class="panel fix-height">
+      <table class="table table-bordered table-hover table-condensed">
         <thead>
           <tr class="active">
-            <th>No.</th>
+            <th>#</th>
             <th>Cat.</th>
             <th>Event Item</th>
+            <th class="col-sm-2">No.</th>
           </tr>
         </thead>
-        <tbody ui-sortable ng-model="eventSettings.schedule" id="currentItems">
-          <tr ng-repeat="item in eventSettings.schedule" ng-class='{danger:roundIsUnrecognised(item.round) || isExtra(item) , warning: outOfPlace(item)}'>
+        <tbody ui-sortable="opts" ng-model="eventSettings.schedule" id="currentItems">
+          <tr ng-repeat="item in eventSettings.schedule" ng-class='{danger:roundIsUnrecognised(item.round) || isExtra(item) , warning: outOfPlace(item), "active": afterActive(item,$index)}'>
             <td class="col-sm-2">{{$index + 1}}</td>
             <td><code>{{item.category}}</code></td>
             <td>{{item.round}} {{item.roundNo}}
               <a ng-click="remove($index)" ng-show="roundIsUnrecognised(item.round) || isExtra(item)" class="pull-right">
                 <span class="glyphicon glyphicon-remove"></span>
               </a>
+            </td>
+            <td>
+              <div class="input-group">
+                <input type="text" class="form-control input-xs" ng-model="item.id">
+              </div>
             </td>
           </tr>
         </tbody>
@@ -47,7 +53,7 @@
             <th colspan="3">Missing Items</th>
           </tr>
           <tr class="active">
-            <th>No.</th>
+            <th>#</th>
             <th>Cat.</th>
             <th>Event Item</th>
           </tr>

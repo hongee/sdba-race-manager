@@ -1,0 +1,18 @@
+<div class="modal-body">
+  <div class="row" style="margin-bottom:10px;">
+    <div class="col-xs-7">
+      <div class="input-group">
+        <span class="input-group-addon">Time</span>
+        <input type="number" class="form-control" ng-model="time" placeholder="Time" required>
+      </div>
+    </div>
+  </div>
+  <div class="input-group">
+    <span class="input-group-addon">Reason</span>
+    <input type="text" class="form-control" ng-model="reason" placeholder="Reason" required>
+  </div>
+</div>
+<div class="modal-footer">
+  <button class="btn btn-danger" ng-click="ok()">Confirm</button>
+  <button class="btn btn-default" ng-click="cancel()">Cancel</button>
+</div>

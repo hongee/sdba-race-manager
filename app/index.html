@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title></title>
+    <title>SDBA Race Assistant</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width">
     <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
@@ -24,10 +24,11 @@
 
     <div class="wrapper">
         <ng-include src="'views/_partials.navbar.html'" ng-controller="NavBarCtrl"></ng-include>
-        <div class="container content-wrapper" ng-class="{shiftTop: display}">
-            <div ng-view=""></div>
+        <div class="container content-wrapper" ng-class="{shiftTop: display, notCenter: notCenter}">
+            <div id="view" ng-view=""></div>
         </div>
     </div>
+
     <!-- Google Analytics: change UA-XXXXX-X to be your site's ID -->
     <!-- build:js(.) scripts/vendor.js -->
     <!-- bower:js -->
@@ -46,6 +47,9 @@
     <script src="bower_components/pouchdb-find/dist/pouchdb.find.min.js"></script>
     <script src="bower_components/jquery-ui/jquery-ui.js"></script>
     <script src="bower_components/angular-ui-sortable/sortable.js"></script>
+    <script src="bower_components/jspdf/dist/jspdf.min.js"></script>
+    <script src="bower_components/blob-util/dist/blob-util.js"></script>
+    <script src="bower_components/jspdf-autotable/jspdf.plugin.autotable.js"></script>
     <!-- endbower -->
     <!-- endbuild -->
     <!-- build:js({.tmp,app}) scripts/scripts.js -->
@@ -58,6 +62,9 @@
     <script src="scripts/controllers/eventview.js"></script>
     <script src="scripts/controllers/completeround.js"></script>
     <script src="scripts/controllers/eventschedule.js"></script>
+    <script src="scripts/controllers/eventmanager.js"></script>
+    <script src="scripts/controllers/firstround.js"></script>
+    <script src="scripts/controllers/print.js"></script>
     <script src="scripts/components/db.js"></script>
     <script src="scripts/components/defaults.js"></script>
     <!-- endbuild -->

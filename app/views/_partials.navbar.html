@@ -1,14 +1,21 @@
 <div class="navbar navbar-default navbar-fixed-top" ng-hide="hide">
-    <div class="container-fluid nav-inner">
-        <button type="button" class="btn btn-link navbar-btn navbar-left" ng-click="back()">
-            <span class="glyphicon glyphicon-chevron-left"></span>
-        </button>
-        <h4 class="nav-center navbar-text">SDBA Race Assistant <small>v0.0.1</small></h4>
-        <button type="button" class="btn btn-link navbar-btn navbar-right close-button" ng-click="close()">
-            <span class="glyphicon glyphicon-remove"></span>
-        </button>
-        <a href="#/settings" class="btn btn-link navbar-btn navbar-right">
-            <span class="glyphicon glyphicon-cog"></span>
-        </a>
-    </div>
+  <div class="container-fluid nav-inner">
+    <button type="button" class="btn btn-link navbar-btn navbar-left" ng-click="back()" ng-disabled="hideBack">
+      <span class="glyphicon glyphicon-chevron-left"></span>
+    </button>
+    <button type="button" class="btn btn-link navbar-btn navbar-left" ng-click="fullscreen()">
+      <span class="glyphicon glyphicon-fullscreen"></span>
+    </button>
+    <h4 class="nav-center navbar-text" ng-click="openDevTools()">SDBA Race Assistant <small>v1.0.0</small></h4>
+    <button type="button" class="btn btn-link navbar-btn navbar-right close-button" ng-click="close()">
+      <span class="glyphicon glyphicon-remove"></span>
+    </button>
+    <a href="#/settings" class="btn btn-link navbar-btn navbar-right">
+      <span class="glyphicon glyphicon-cog"></span>
+    </a>
+    <a type="button" class="btn btn-link navbar-btn navbar-right" ng-click="reload()" ng-hide="hideRefresh">
+      <span class="glyphicon glyphicon-refresh" ng-class="{spin:updates}"></span>
+      <span class="badge" ng-show="updates">{{updates}}</span>
+    </a>
+  </div>
 </div>

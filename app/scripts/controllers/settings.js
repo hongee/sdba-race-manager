@@ -1,6 +1,8 @@
 angular.module('sdbaApp')
   .controller('SettingsCtrl', function($scope, $rootScope) {
 
+    $rootScope.notCenter = true;
+
     $scope.$watch(function() {
       return $rootScope.settings;
     }, function() {
@@ -50,6 +52,9 @@ angular.module('sdbaApp')
       $rootScope.settings.predefEvents = newPredef;
 
       $rootScope.db.put($rootScope.settings)
+        .then(function(r) {
+          $rootScope.settings._rev = r.rev;
+        })
         .catch(function(e) {
           console.log(e);
         });
@@ -79,5 +84,26 @@ angular.module('sdbaApp')
       });
       chooser.trigger('click');
     };
+
+    $scope.selectdir = function(type) {
+      var chooser = $('#' + type + 'Dir');
+      chooser.change(function(e) {
+
+        var dir = $(this).val();
+        $rootScope.settings[type + 'd'] = dir;
+
+        $rootScope.db.put($rootScope.settings)
+          .then(function(r) {
+            console.log(r);
+            $rootScope.settings._rev = r.rev;
+            $scope.$apply($scope.appSettings = $rootScope.settings);
+          })
+          .catch(function(e) {
+            console.log(e);
+          });
+      });
+      chooser.trigger('click');
+    };
+
 
   });

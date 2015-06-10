@@ -121,13 +121,34 @@ body {
 }
 
 .content-wrapper {
-  max-height: 82.5%;
+  max-height: 85%;
+}
+
+.fix-height {
+  max-height: 500px;
+  overflow-y: scroll;
+}
+
+.notCenter {
+  align-self: flex-start;
+  margin-top: 70px;
   overflow-y: auto;
   overflow-x: hidden;
 }
 
 .event-settings {
   padding-right: 43px;
+}
+
+.rng {
+  padding: 15px;
+  .race-item {
+    padding-left: 10px;
+    padding-right: 10px;
+    .table {
+      margin-bottom: 10px;
+    }
+  }
 }
 
 .races {
@@ -150,6 +171,38 @@ body {
   font-size: initial !important;
   padding: 6px 12px !important;
 }
+
+.race-overlay {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.screen {
+  background-color: rgba(0, 0, 0, 0.6);
+  width: 50%;
+  height: 50%;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  * {
+    color: white;
+  }
+}
+
+.input-xs {
+    height: 22px;
+    padding: 5px 5px;
+    font-size: 12px;
+    line-height: 1.5;
+    border-radius: 3px;
+}
+
 /* Everything but the jumbotron gets side spacing for mobile first views */
 
 .header,
@@ -225,4 +278,62 @@ body {
   .jumbotron {
     border-bottom: 0;
   }
+}
+/* animations stuff */
+
+.spin {
+  -webkit-animation-name: spin;
+  -webkit-animation-duration: 1s;
+  -webkit-animation-iteration-count: infinite;
+  -webkit-animation-timing-function: ease-in-out;
+}
+
+@-webkit-keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* thanks http://stackoverflow.com/questions/19503321/fade-effect-for-tabs-in-ui-bootstrap-angular-js */
+/* set reference point */
+
+.tab-animation > .tab-content {
+  position: relative;
+}
+/* set animate effect */
+
+.tab-animation > .tab-content > .tab-pane {
+  transition: 0.2s linear opacity;
+}
+/* overwrite display: none and remove from document flow */
+
+.tab-animation > .tab-content > .tab-pane.active-remove {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  display: block;
+}
+/* opacity=0 when removing "active" class */
+
+.tab-animation > .tab-content > .tab-pane.active-remove-active {
+  opacity: 0;
+}
+/* opacity=0 when adding "active" class */
+
+.tab-animation > .tab-content > .tab-pane.active-add {
+  opacity: 0;
+}
+/* Print Stuff */
+
+.pbreak {
+  page-break-after: always;
+}
+
+@page {
+  size: A4;
+}
+
+@media print {
 }

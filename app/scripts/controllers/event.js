@@ -1,6 +1,8 @@
 angular.module('sdbaApp')
   .controller('EventCtrl', function($scope, DBService, $location, $rootScope, $route) {
     $scope.waitOutput = false;
+    $rootScope.notCenter = false;
+    $scope.schError = false;
 
     DBService.getActiveEvent()
       .then(function(e) {
@@ -12,13 +14,7 @@ angular.module('sdbaApp')
             DBService.db.get(e.activeRace)
               .then(function(r) {
                 $scope.$apply($scope.race = r);
-                if (DBService.newRoundReturn) {
-                  console.log("Came from generator");
-                  DBService.newRoundReturn = false;
-                  continueRace();
-                } else {
-                  presentRace();
-                }
+                presentRace();
               })
               .catch(function(err) {
                 console.log(err);
@@ -49,17 +45,26 @@ angular.module('sdbaApp')
     var presentRace = function() {
       var scheduleItem = _.find($scope.event.schedule, {
         'category': $scope.race.category,
-        'roundNo': $scope.race.roundNo,
+        'roundNo': ($scope.race.timeTrial ? 'timetrial_' + $scope.race.roundNo : $scope.race.roundNo),
         'round': $scope.race.round
       });
       scheduleItem.catName = $scope.event.categories[$scope.race.category].name;
       DBService.getRaceTeams($scope.race)
         .then(function(teams) {
           var t = [];
+
           _.forEach(teams.rows, function(val, key) {
+
             var cat = val.doc.categories[$scope.race.category];
+
+            var laneNo = _.findKey($scope.race, function(id, key) {
+              if (key.includes('LANE')) {
+                return id === val.doc.teamID;
+              }
+            });
+
             cat[$scope.race.round] = {
-              lane: key + 1,
+              lane: laneNo.match(/\d+/)[0],
               time: 0
             };
             t.push(val.doc);
@@ -78,47 +83,120 @@ angular.module('sdbaApp')
         });
     };
 
-    var continueRace = function(i) {
+    $scope.skipEvent = function() {
+
+      DBService.db.get($scope.event._id)
+        .then(function(e) {
+
+          //swaps this index and the next index
+          var currentIndex = _.findIndex(e.schedule, function(item) {
+            return item.round === $scope.race.round && item.roundNo === ($scope.race.timeTrial ? "timetrial_" + $scope.race.roundNo : $scope.race.roundNo) && item.category === $scope.race.category;
+          });
+
+          var currentItem = _.cloneDeep(e.schedule[currentIndex]);
+          nextItem = _.cloneDeep(e.schedule[currentIndex + 1]);
+
+          if (currentItem && nextItem) {
+            e.schedule[currentIndex] = nextItem;
+            e.schedule[currentIndex + 1] = currentItem;
+
+            DBService.getRace(e.eventID, nextItem)
+              .then(function(r) {
+                e.activeRace = r._id;
+                if (e.scheduleErrors.length) {
+                  $scope.$apply($scope.schError = true);
+                  throw {
+                    status: 500
+                  };
+                }
+                return DBService.db.put(e);
+              })
+              .then(function() {
+                console.log("next race!");
+                $route.reload();
+              })
+              .catch(function(err) {
+                console.log(err);
+                if (err.status == 404) {
+                  //event doesnt exist in schedule
+                  $scope.$apply($scope.notFound = e.schedule[currentIndex + 1]);
+                  console.log(nextItem);
+                  console.log("Was Not Found!");
+                  if(!$scope.race.complete) {
+                    alert(nextItem.category + ' ' + nextItem.round + ' ' + nextItem.roundNo + ' is not ready. Please check with the event manager.');
+                  }
+                }
+              });
+
+          } else {
+            throw new Error("The next item in the schedule is undefined");
+          }
+        })
+        .catch(function(err) {
+          console.log(err);
+          alert(err);
+        })
+
+    }
+
+    $scope.continueRace = function(i) {
       //sets new active race, save the $scope.event, reloads view
       console.log("going to next event");
       console.log($scope.event);
-      var currentIndex = _.findIndex($scope.event.schedule, function(item) {
-        return item.round === $scope.race.round && item.roundNo === $scope.race.roundNo && item.category === $scope.race.category;
-      });
+      console.log($scope.race);
 
-      if (currentIndex === $scope.event.schedule.length - 1) {
-        //last event
-        console.log("is last event");
-        $scope.$apply($location.path("/event/view/" + $scope.event.eventID));
-      } else {
+      DBService.db.get($scope.event._id)
+        .then(function(e) {
 
-        var nextRace = {};
-
-        DBService.getRace($scope.event.eventID, $scope.event.schedule[currentIndex + 1])
-          .then(function(race) {
-
-            nextRace = race;
-            //ensure we're updating the latest edition of the event!
-
-            return DBService.db.get($scope.event._id);
-          })
-          .then(function(event) {
-            event.activeRace = nextRace._id;
-            return DBService.db.put(event);
-          })
-          .then(function() {
-            console.log("next race!");
-            $route.reload();
-          })
-          .catch(function(err) {
-            console.log(err);
-            if (err.status == 404) {
-              //event doesnt exist in schedule
-              console.log($scope.event.schedule[currentIndex + 1]);
-              console.log("Was Not Found!");
-            }
+          var currentIndex = _.findIndex(e.schedule, function(item) {
+            return item.round === $scope.race.round && item.roundNo === ($scope.race.timeTrial ? "timetrial_" + $scope.race.roundNo : $scope.race.roundNo) && item.category === $scope.race.category;
           });
-      }
+
+          if (currentIndex === e.schedule.length - 1) {
+            //last event
+            console.log("is last event");
+            $scope.$apply($location.path("/event/view/" + e.eventID));
+          } else {
+
+            console.log(currentIndex);
+
+            var nextRace = {};
+
+            DBService.getRace(e.eventID, e.schedule[currentIndex + 1])
+              .then(function(race) {
+
+                nextRace = race;
+                //ensure we're updating the latest edition of the event!
+
+                console.log(nextRace);
+
+                e.activeRace = nextRace._id;
+                if (e.scheduleErrors.length) {
+                  $scope.$apply($scope.schError = true);
+                  throw {
+                    status: 500
+                  };
+                }
+                return DBService.db.put(e);
+              })
+              .then(function() {
+                console.log("next race!");
+                $route.reload();
+              })
+              .catch(function(err) {
+                console.log(err);
+                if (err.status == 404) {
+                  //event doesnt exist in schedule
+                  $scope.$apply($scope.notFound = e.schedule[currentIndex + 1]);
+                  console.log(e.schedule[currentIndex + 1]);
+                  console.log("Was Not Found!");
+                }
+              });
+          }
+
+
+        });
+
 
     };
 
@@ -131,92 +209,127 @@ angular.module('sdbaApp')
 
     $scope.nextRace = function() {
 
-
-      //firms the team's timings
-      _.forEach($scope.teams, function(team) {
-        var cat = team.categories[$scope.race.category];
-        cat[$scope.race.round].time = team["latestTiming_" + cat.id];
-        //in case this wasnt actually saved
-        cat[$scope.race.round].roundNo = $scope.race.roundNo;
-      });
-
-      console.log($scope.teams);
-      console.log($scope.event);
-
-      //set the race winner
-      var s = _.sortBy($scope.teams, 'latestTiming_' + $scope.race.category);
-      $scope.race.winner = s[0].teamID;
-      var winningTeam = _.find($scope.teams, {
-        'teamID': $scope.race.winner
-      });
-      var c = winningTeam.categories[$scope.race.category];
-
-      c[$scope.race.round].winner = true;
-
-      console.log("winner is");
-      console.log($scope.race);
-
       //update everything
       var toBeUpdated = [];
-      Array.prototype.push.apply(toBeUpdated, $scope.teams);
-      toBeUpdated.push($scope.race);
-
-      console.log("Updating the following");
-      console.log(toBeUpdated);
-
-      DBService.db.bulkDocs(toBeUpdated)
+      //Array.prototype.push.apply(toBeUpdated, $scope.teams);
+      DBService.db.get($scope.race._id)
         .then(function(r) {
-          //is this the last event of the current round?
-          var raceCat = $scope.event.categories[$scope.race.category];
-          //these numbers must be set correctly from the start-- in eventSettingsjs
-          if (parseInt($scope.race.roundNo) === raceCat.progression[$scope.race.round]) {
-            //current round = total no. of rounds
-            //generate next round then go next race
-            $scope.$apply($location.path("/event/nextround"));
-            $location.path("/event/nextround");
+          if (r.completed) {
+            $scope.continueRace();
+            throw new Error("Race Already Completed!");
           } else {
-            //go to next race;
-            continueRace();
-          };
+            r.completed = true;
+            r.completedAt = $scope.race.completedAt;
 
+            toBeUpdated.push(r);
+
+            return DBService.getRaceTeams($scope.race);
+          }
+        })
+        .then(function(r) {
+          var teams = _.map(r.rows, function(team) {
+            var cat = team.doc.categories[$scope.race.category];
+
+            var correspondingTeam = _.find($scope.teams, {
+              '_id': team.doc._id
+            });
+
+            var laneNo = _.findKey($scope.race, function(id, key) {
+              if (key.includes('LANE')) {
+                return id === team.doc.teamID;
+              }
+            });
+
+            cat[$scope.race.round] = {
+              lane: laneNo.match(/\d+/)[0],
+              time: 0,
+              roundNo: $scope.race.roundNo
+            };
+
+
+            var times = correspondingTeam['latestTiming_' + cat.id].split(':');
+            var finalTime = 0;
+            if (times[1]) {
+              //there is ':'
+              finalTime += parseInt(times[0]) * 60;
+              finalTime += parseFloat(times[1]);
+            } else {
+              finalTime += parseFloat(times[0]);
+            }
+
+            team.doc['latestTiming_' + cat.id] = finalTime;
+
+            return team.doc;
+          });
+
+          console.log(teams);
+
+          toBeUpdated = toBeUpdated.concat(teams);
+          console.log("Updating the following");
+          console.log(toBeUpdated);
+
+          return DBService.db.bulkDocs(toBeUpdated);
+        })
+        .then(function() {
+          $scope.continueRace();
         })
         .catch(function(err) {
+          alert(err);
           console.log(err);
-        });
+        })
+
+
     };
 
     $scope.outputEvent = function() {
       //here lies node.
       if (!window.require) {
         //prevent browser crashes for testing
-        $scope.waitOutput = true;
-
         return;
       }
       var fs = require('fs');
       var parse = require('csv-parse');
       //platform appropriate end of line character
       var eolChar = require('os').EOL;
+      var chokidar = require('chokidar');
+      var path = require('path');
 
       var evt = "";
       //if this is a new event, clear the Lynx file
-      if ($scope.race.raceID !== 1) {
-        var previousData = fs.readFileSync($rootScope.settings.inputd + '/Lynx.evt', {
-          encoding: 'utf8'
+      if ($scope.race.raceID !== '1') {
+
+        try {
+          var previousData = fs.readFileSync($rootScope.settings.inputd + '/Lynx.evt', {
+            encoding: 'utf8'
+          });
+          evt = previousData;
+        } catch (err) {
+          console.log(err);
+          if (err.code === "ENOTFOUND") {
+            window.alert("No existing EVT was found!")
+          } else {
+            window.alert("Error encountered in trying to read EVT file");
+          }
+        }
+
+
+      }
+
+      if (evt.indexOf($scope.race.raceID + ',1,1,' + $scope.event.eventID + eolChar) === -1) {
+        evt += $scope.race.raceID + ',1,1,' + $scope.event.eventID + eolChar;
+
+        _.forEach($scope.teams, function(team, key) {
+          var lane = team.categories[$scope.race.category][$scope.race.round].lane;
+          evt += "," + team.teamID + ',' + lane + ',,' + team.name + eolChar;
         });
-        evt = previousData;
-      };
+
+        fs.writeFileSync($rootScope.settings.inputd + '/Lynx.evt', evt);
+        console.log("EVT file updated, now watching directory for updates");
+      } else {
+        console.log("EVT contains race info! not writing");
+      }
 
       //first line denoting race info
-      evt += $scope.race.raceID + ',1,1,' + $scope.event.eventID + eolChar;
-
-      _.forEach($scope.teams, function(team, key) {
-        var lane = key + 1;
-        evt += "," + team.teamID + ',' + lane + ',,' + team.name + eolChar;
-      });
-
-      fs.writeFileSync($rootScope.settings.inputd + '/Lynx.evt', evt);
-      console.log("EVT file updated, now watching directory for updates");
       $scope.waitOutput = true;
 
       var results = "";
@@ -224,14 +337,12 @@ angular.module('sdbaApp')
       var simulate = $('#simulate');
       simulate.click(function(e) {
         console.log("simulating RESULTS!");
-        if (window.require) {
-          //prevent browser crashes for testing
-          watcher.close();
-        }
+
+        watcher.close();
 
         _.forEach($scope.teams, function(team) {
           var cat = team.categories[$scope.race.category];
-          team['latestTiming_' + cat.id] = Math.random() * 100.100;
+          team['latestTiming_' + cat.id] = (Math.random() * 100.100).toFixed(3);
 
           cat[$scope.race.round].roundNo = $scope.race.roundNo;
 
@@ -239,67 +350,137 @@ angular.module('sdbaApp')
 
         console.log($scope.teams);
 
-        $scope.race['completed'] = true;
+        $scope.race.completed = true;
+        $scope.race.completedAt = Date.now();
         console.log($scope.race);
         $scope.$apply($scope.race = $scope.race);
         $scope.$apply($scope.teams = $scope.teams);
         $scope.$apply($scope.waitOutput = false);
       });
 
+      console.log(path.join($rootScope.settings.outputd, '*.lif'));
 
-      var watcher = fs.watch($rootScope.settings.outputd, {
-        persistent: true
-      }, function(event, filename) {
-        console.log("Lynx output directory changed");
-        console.log(filename);
-        if (!filename) {
-          console.log("Filename not provided");
-          var files = fs.readdirSync($rootScope.settings.outputd);
-          filename = _.find(files, function(file) {
-            if ($scope.race.raceID === 1) {
-              return file.includes("001-1-01");
-            } else {
-              return file.includes($scope.race.raceID);
+      var watcher = chokidar.watch(path.join($rootScope.settings.outputd, '*.lif'), {
+        ignorePermissionErrors: false,
+        atomic: true
+      });
+
+      console.log(watcher);
+
+      var select = $('#manualLif');
+      select.click(function() {
+        var chooser = $('#lifSelector');
+
+        chooser.change(function(e) {
+          var loc = $(this).val();
+
+          while (true) {
+            try {
+              results = fs.readFileSync(loc, {
+                encoding: 'utf8'
+              });
+              break;
+            } catch (err) {
+              console.log(err);
+              if (err.code !== "EBUSY") {
+                window.alert("error encountered in trying to read file");
+                break;
+              }
             }
+          }
+
+          parse(results, function(err, output) {
+            console.log(output);
+            if (output[0][0] === $scope.race.raceID) {
+              console.log("closing watcher");
+              watcher.close();
+            } else {
+              window.alert('There is an error in the LIF file! Got ' + parseInt(output[0][0]) + ' expected ' + $scope.race.raceID);
+              return;
+            }
+            //go through every line of the output
+            for (var i = 1; i < output.length; i++) {
+              var team = _.find($scope.teams, {
+                'teamID': parseInt(output[i][1])
+              });
+              if (!team) {
+                break;
+              }
+              var cat = team.categories[$scope.race.category];
+              cat[$scope.race.round].roundNo = $scope.race.roundNo;
+
+              //if no timing assume did not complete
+
+              team['latestTiming_' + $scope.race.category] = output[i][6].length ? output[i][6] : '99:99.99';
+            }
+
+            console.log($scope.teams);
+
+            $scope.race.completed = true;
+            $scope.race.completedAt = Date.now();
+            console.log($scope.race);
+            $scope.$apply($scope.race = $scope.race);
+            $scope.$apply($scope.teams = $scope.teams);
+            $scope.$apply($scope.waitOutput = false);
+            console.log(output);
           });
-        }
 
-        if (!filename.includes('lif')) {
-          console.log("Doesnt include lif");
-          return;
-        }
-
-        results = fs.readFileSync($rootScope.settings.outputd + "/" + filename, {
-          encoding: 'utf8'
         });
+
+        chooser.trigger('click');
+
+      });
+
+      watcher.on('add', function(filepath) {
+        console.log(filepath + ' happened');
+
+        while (true) {
+          try {
+            results = fs.readFileSync(filepath, {
+              encoding: 'utf8'
+            });
+            break;
+          } catch (err) {
+            console.log("error encountered in trying to read file");
+            console.log(err);
+            if (err.code !== "EBUSY") {
+              break;
+            }
+          }
+
+        }
+
 
         parse(results, function(err, output) {
           console.log(output);
-          if (parseInt(output[0][0]) === $scope.race.raceID) {
+          if (output[0][0] === $scope.race.raceID) {
             console.log("closing watcher");
             watcher.close();
           } else {
+            console.log('got ' + parseInt(output[0][0]) + ' expected ' + $scope.race.raceID);
+            console.log("the file is wrong!!")
             return;
           }
           //go through every line of the output
-          for (var i = 1; i <= output.length; i++) {
+          for (var i = 1; i < output.length; i++) {
             var team = _.find($scope.teams, {
               'teamID': parseInt(output[i][1])
             });
             if (!team) {
               break;
             }
-            team.categories[$scope.race.category];
-
-            //cat[$scope.race.round].time = output[i][6];
+            var cat = team.categories[$scope.race.category];
             cat[$scope.race.round].roundNo = $scope.race.roundNo;
 
-            team['latestTiming_' + $scope.race.category.id] = output[i][6];
+            //if no timing assume did not complete
+
+            team['latestTiming_' + $scope.race.category] = output[i][6].length ? output[i][6] : '99:99.99';
           }
 
           console.log($scope.teams);
 
-          $scope.race['completed'] = true;
+          $scope.race.completed = true;
+          $scope.race.completedAt = Date.now();
           console.log($scope.race);
           $scope.$apply($scope.race = $scope.race);
           $scope.$apply($scope.teams = $scope.teams);
@@ -307,7 +488,9 @@ angular.module('sdbaApp')
           console.log(output);
         });
 
-      });
+
+      })
+
     };
 
   });

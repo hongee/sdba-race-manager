@@ -1,6 +1,9 @@
 /// <reference path="../../../typings/jquery/jquery.d.ts"/>
 angular.module('sdbaApp')
-  .controller('NewEventCtrl', function($scope, DBService, $location, defaults) {
+  .controller('NewEventCtrl', function($scope, DBService, $location, defaults, $rootScope) {
+
+    $rootScope.notCenter = false;
+
 
     var predefEvents = {};
     $scope.possibleEvents = {};
@@ -113,7 +116,7 @@ angular.module('sdbaApp')
 
         });
         console.log("Done configuring categories");
-
+        console.log(eventSettings);
         $scope.regList = regList;
         $scope.$apply($scope.e = eventSettings);
         $scope.$apply($scope.lane = true);

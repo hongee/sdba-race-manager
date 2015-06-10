@@ -41,6 +41,14 @@ angular.module('sdbaApp')
         return this.retrieve('race_' + activeEvent, getDocs);
       },
 
+      getAllTimeTrials: function(round, category, event) {
+        return this.retrieve('race_' + event + '_' + category + '_' + round + '_timetrial', true);
+      },
+
+      createTimeTrial: function(opts,event) {
+        return $rootScope.db.put(opts, 'race_' + event + '_' + opts.category + '_' + opts.round + '_timetrial_' + opts.roundNo);
+      },
+
       createEvent: function(event) {
         return $rootScope.db.put(event,'settings_event_'+event.eventID);
       },
@@ -53,10 +61,16 @@ angular.module('sdbaApp')
         return $rootScope.db.bulkDocs(teams);
       },
       createRound: function(roundRaces) {
-        _.forEach(roundRaces, function(race){
+
+        var r = _.cloneDeep(roundRaces);
+
+        _.forEach(r, function(race){
           race._id = "race_" + activeEvent + "_" + race.category + "_" + race.round + "_" + race.roundNo;
+          if(race.hasOwnProperty('teams')) {
+            delete race.teams;
+          }
         });
-        return $rootScope.db.bulkDocs(roundRaces);
+        return $rootScope.db.bulkDocs(r);
       },
 
       getAllRacesOfRound: function(category,round) {
@@ -103,8 +117,6 @@ angular.module('sdbaApp')
         var r = _.map(_.sortBy(teamArr,'key'), function(team){
           return team.team;
         });
-
-        console.log(r);
 
         return $rootScope.db.allDocs({
           include_docs: true,

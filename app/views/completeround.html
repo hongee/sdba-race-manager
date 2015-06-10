@@ -1,28 +1,36 @@
 <div class="container content-wrap clearfix event-settings">
-  <h3>{{event.categories[race.category].name}} {{race.round}} is Complete.</h3>
+  <h3>Race Progression Preview
+  <a type="btn btn-default btn-link" ng-click="print()" ng-hide="hideIcon">
+    <span class="glyphicon glyphicon-print" style="font-size:18px;"></span>
+  </a>
+  </h3>
+  <h4>{{event.categories[race.category].name}} {{race.round}} is Complete.</h4>
   <div class="panel panel-default" ng-repeat="promotion in promotions">
     <div class="panel-body">
       <h4 style="margin-top: 0">{{promotion.statement}}</h4>
-          <table class="table table-bordered">
-            <thead>
-              <tr>
-                <th class="col-sm-1">No.</th>
-                <th>Name</th>
-                <th class="col-sm-2">Race</th>
-                <th class="col-sm-1">Timing</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr ng-repeat="(key,team) in promotion.teams">
-                <td>{{key + 1}}</td>
-                <td>{{team.name}}</td>
-                <td>{{race.round}} {{team.categories[race.category][race.round].roundNo}}</td>
-                <td>{{team.categories[race.category][race.round].time | number}}</td>
-              </tr>
-            </tbody>
-          </table>
+      <table class="table table-bordered print-sel">
+        <thead>
+          <tr>
+            <th class="col-sm-1">No.</th>
+            <th>Name</th>
+            <th class="col-sm-2">Next</th>
+            <th class="col-sm-2">Current</th>
+            <th class="col-sm-1">Timing</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="(key,team) in promotion.teams track by team.teamID">
+            <td>{{key + 1}}</td>
+            <td>{{team.name}}</td>
+            <td>{{getNext(team)}}</td>
+            <td>{{team.categories[race.category][race.round] ? race.round : "HEAT"}} {{team.categories[race.category][race.round] ? team.categories[race.category][race.round].roundNo : team.categories[race.category].HEAT.roundNo}}</td>
+            <td>{{team.categories[race.category][race.round] ? (race.round === "RND2" ? team.combinedRoundsTiming : team.categories[race.category][race.round].time) : team["latestTiming_" + race.category] | number}}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
-  <button class="btn btn-default" ng-show="isFinals" ng-click="confirm(true)">Next Event</button>
-  <button class="btn btn-default" ng-hide="isFinals" ng-click="confirm()">Confirm and Proceed</button>
+    <button style="margin-bottom: 10px;" class="btn btn-default" ng-show="isFinals && !hideIcon" ng-click="confirm(true)">Acknowledge</button>
+  <button style="margin-bottom: 10px;" class="btn btn-danger btn-lg btn-default" ng-hide="isFinals || hideIcon" ng-click="confirm()">Generate Progression</button>
+
 </div>

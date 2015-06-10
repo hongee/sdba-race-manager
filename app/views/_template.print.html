@@ -1,0 +1,32 @@
+<div class="container content-wrap clearfix event-view">
+  <div ng-show="rngall">
+    <h2>{{event.name}} Line Up
+    <a type="btn btn-default btn-link" ng-click="print()">
+          <span class="glyphicon glyphicon-save" style="font-size:18px;"></span>
+    </a>
+    <input style="display:none;" id="saveCsv" nwsaveas="{{event.eventID}}_lineUp.csv" type="file" nwsaveas />
+  </h2>
+    <div class="container">
+      <table class="table" id="rng-table">
+        <thead>
+          <tr>
+            <th class="col-xs-3">RACE</th>
+            <th class="col-xs-1">HEAT</th>
+            <th class="col-xs-1">LANE</th>
+            <th class="col-xs-7">TEAM</th>
+          </tr>
+        </thead>
+      </table>
+      <table class="table" ng-repeat="category in event.categories">
+        <tbody ng-repeat="race in category.round">
+          <tr ng-repeat="team in race.teams">
+            <td class="col-xs-3">{{category.id}}</td>
+            <td class="col-xs-1">{{race.roundNo}}</td>
+            <td class="col-xs-1">{{getLane(team,race)}}</td>
+            <td class="col-xs-7">{{team.name}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

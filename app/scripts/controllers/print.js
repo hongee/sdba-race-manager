@@ -26,7 +26,7 @@ angular.module('sdbaApp')
 
         var eolChar = "\n";
 
-        csv += 'RACE,HEAT,LANE,TEAM' + eolChar;
+        csv += 'RACE,HEAT/ROUND/GRANDFINALS,LANE,TEAM' + eolChar;
 
         _.forEach($scope.event.categories, function(cat) {
           _.forEach(cat.round, function(race) {
@@ -74,7 +74,7 @@ angular.module('sdbaApp')
                 cat.rounds = {};
                 _.forEach(cat.progression, function(val, round) {
                   //first round only
-                  var relevant = ["RND", "HEAT"];
+                  var relevant = ["RND", "HEAT", "GNFN"]; //(for direct finals)
                   if (_.includes(relevant, round)) {
                     DBService.getAllRacesOfRound(cat.id, round)
                       .then(function(r) {

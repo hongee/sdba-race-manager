@@ -71,7 +71,7 @@ angular.module('sdbaApp')
         eventSettings.schedule = [];
         _.forEach(eventSchedule, function(item, index) {
           var e = {};
-          e.id = parseInt(item['Event No.']);
+          e.id = item['Event No.'].trim();
           e.category = item['Category ID'];
           e.round = item['Round'];
           e.roundNo = parseInt(item['Round No.']);

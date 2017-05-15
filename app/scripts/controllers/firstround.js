@@ -1,5 +1,5 @@
 angular.module('sdbaApp')
-  .controller('FirstRndCtrl', function($scope, DBService, $rootScope, $route, $location) {
+  .controller('FirstRndCtrl', function($scope, DBService, $rootScope, $route, $location, $modal) {
     $rootScope.notCenter = true;
 
     $scope.event = {};
@@ -136,11 +136,22 @@ angular.module('sdbaApp')
     }
 
     $scope.confirm = function(category) {
-      DBService.createRound(category.firstRound)
-        .then(function() {
-          category.done = true;
-          $scope.$apply($scope.event = $scope.event);
-        });
+
+      var confirmationDialog = $modal.open({
+        templateUrl: 'views/_partials.confirmation.html',
+        controller: 'ConfirmationCtrl',
+        size: 'sm'
+      });
+
+      confirmationDialog.result.then(function(r){
+        if(r) {
+          DBService.createRound(category.firstRound)
+            .then(function() {
+              category.done = true;
+              $scope.$apply($scope.event = $scope.event);
+            });
+        }
+      });
     }
 
     loadAll();

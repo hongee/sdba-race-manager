@@ -2,7 +2,72 @@ angular.module('sdbaApp')
   .constant('defaults',
 {
       raceProgression: {
-        four: [
+        four: [{
+            max_teams: 4,
+            GNFN: 1,
+            alt: {
+              RND: 1,
+              RND2: 1,
+              GNFN: 1
+              }
+            },{
+              max_teams: 6,
+              HEAT: 2,
+              REPE: 1,
+              GNFN: 1
+            },{
+              max_teams: 8,
+              HEAT: 2,
+              REPE: 2,
+              GNFN: 1
+            },{
+              max_teams: 12,
+              HEAT: 3,
+              FLH: 1,
+              REPE: 2,
+              SEMI: 2,
+              GNFN: 1
+            },{
+              max_teams: 16,
+              HEAT: 4,
+              REPE: 3,
+              SEMI: 2,
+              GNFN: 1
+            },{
+              max_teams: 20,
+              HEAT: 5,
+              FLH: 3,
+              REPE: 3,
+              SEMI: 3,
+              MNFN: 1,
+              GNFN: 1
+            },{
+              max_teams: 24,
+              HEAT: 6,
+              FLH: 2,
+              REPE: 4,
+              SEMI: 3,
+              MNFN: 1,
+              GNFN: 1
+            },{
+              max_teams: 28,
+              HEAT: 7,
+              FLH: 5,
+              REPE: 4,
+              SEMI: 4,
+              PLFN: 1,
+              MNFN: 1,
+              GNFN: 1
+            },{
+              max_teams: 32,
+              HEAT: 8,
+              FLH: 4,
+              REPE: 5,
+              SEMI: 4,
+              PLFN: 1,
+              MNFN: 1,
+              GNFN: 1
+            }
         ],
         six: [{
             max_teams: 6,
